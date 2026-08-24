@@ -67,11 +67,15 @@ body {
   font-family: var(--font);
   font-size: 13px;
   line-height: 1.5;
+  overflow: hidden;
 }
 
 #root {
   height: auto;
   min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .panel {
@@ -79,8 +83,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
-
 /* --- cards & sections ---------------------------------------------------- */
 
 .card {
@@ -91,6 +97,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .card-title {
@@ -100,18 +111,25 @@ body {
   align-items: center;
   gap: 6px;
   color: var(--fg);
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .card-desc {
   font-size: 12px;
   color: var(--fg-muted);
   margin-top: -4px;
+  line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .field-label {
@@ -121,8 +139,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+  word-break: break-word;
 }
-
 .req {
   color: var(--danger);
   margin-left: 2px;
@@ -131,13 +152,17 @@ body {
 .hint {
   font-size: 11px;
   color: var(--fg-soft);
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
-
 
 .provider-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .provider-info-box {
@@ -148,6 +173,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .provider-info-row {
@@ -155,6 +183,15 @@ body {
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.provider-info-row > * {
+  min-width: 0;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .badge-emerald {
@@ -168,6 +205,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
+  max-width: 100%;
 }
 /* --- form controls ------------------------------------------------------- */
 
@@ -175,6 +214,9 @@ body {
 .textarea,
 .select {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 6px 10px;
   border-radius: 6px;
   border: 1px solid var(--border);
@@ -186,6 +228,13 @@ body {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+input[type="range"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  accent-color: var(--accent);
+}
 .input:focus,
 .textarea:focus,
 .select:focus {
@@ -225,6 +274,8 @@ body {
   background: var(--bg-input);
   color: var(--fg);
   transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn:hover:not(:disabled) {
@@ -261,10 +312,19 @@ body {
 
 .switch {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   cursor: pointer;
   user-select: none;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.switch span:last-child {
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 
 .switch input {
@@ -279,8 +339,9 @@ body {
   border: 1px solid var(--border);
   position: relative;
   transition: background 0.15s ease;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
-
 .switch-track::after {
   content: "";
   position: absolute;
@@ -342,6 +403,17 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.alert > span {
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .alert-green {
@@ -368,6 +440,8 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .row-between {
@@ -375,14 +449,17 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .col {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
-
 .grow {
   flex: 1;
 }
@@ -405,6 +482,26 @@ body {
   gap: 8px;
 }
 
+@media (max-width: 440px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 320px) {
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
 /* --- message list -------------------------------------------------------- */
 
 .msg-item {

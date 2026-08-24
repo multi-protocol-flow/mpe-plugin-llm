@@ -185,13 +185,15 @@ export function initBridge(options: BridgeOptions): () => void {
   const updateHeight = () => {
     const root = document.getElementById('root');
     if (root) {
-      const height = Math.ceil(root.offsetHeight || root.scrollHeight);
+      const height = Math.ceil(Math.max(root.scrollHeight, root.offsetHeight));
       if (Number.isFinite(height) && height > 0 && Math.abs(height - lastReportedHeight) >= 1) {
         lastReportedHeight = height;
         postResize(height);
       }
     }
   };
+
+  window.addEventListener('resize', updateHeight);
 
   let resizeObserver: ResizeObserver | null = null;
   if (typeof ResizeObserver !== 'undefined') {
@@ -206,10 +208,12 @@ export function initBridge(options: BridgeOptions): () => void {
 
   // Immediate & deferred measurements to catch initial render
   setTimeout(updateHeight, 0);
-  setTimeout(updateHeight, 100);
+  setTimeout(updateHeight, 50);
+  setTimeout(updateHeight, 150);
 
   return () => {
     window.removeEventListener('message', handleMessage);
+    window.removeEventListener('resize', updateHeight);
     if (resizeObserver) {
       resizeObserver.disconnect();
     }

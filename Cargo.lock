@@ -797,7 +797,7 @@ dependencies = [
 
 [[package]]
 name = "mpe-plugin-llm"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "eventsource-stream",
  "futures-util",

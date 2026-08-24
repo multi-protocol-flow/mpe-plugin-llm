@@ -452,15 +452,15 @@ export function PanelApp() {
       </div>
 
       <div className="field">
-        <div className="row-between">
-          <label className="field-label">
+        <div className="row-between" style={{ marginBottom: '2px' }}>
+          <label className="field-label" style={{ margin: 0 }}>
             <span className="row" style={{ gap: '4px' }}>
               <IconSparkles size={13} className="text-muted" />
               <span>{t('模型名称 (Model)', 'Model Name')}</span>
             </span>
             <span className="req">*</span>
           </label>
-          <div className="row">
+          <div className="row" style={{ gap: '6px' }}>
             <button
               type="button"
               className="btn btn-sm"
@@ -612,14 +612,14 @@ export function PanelApp() {
             <div className="provider-info-box">
               <div className="provider-info-row">
                 <span className="hint">{t('已绑定服务商节点:', 'Linked Provider Node:')}</span>
-                <span className="mono" style={{ fontWeight: 600, color: 'var(--accent)' }}>
+                <span className="mono" style={{ fontWeight: 600, color: 'var(--accent)', wordBreak: 'break-all' }}>
                   {selectedProviderNode?.label || String(config.provider_uuid || '')}
                 </span>
               </div>
               {selectedProviderNode?.config && (
                 <div className="provider-info-row">
                   <span className="hint">{t('服务商地址 / 默认模型:', 'Base URL / Default Model:')}</span>
-                  <span className="mono text-muted">
+                  <span className="mono text-muted" style={{ wordBreak: 'break-all' }}>
                     {String(selectedProviderNode.config.base_url || '')} ({String(selectedProviderNode.config.model || '')})
                   </span>
                 </div>
@@ -628,7 +628,7 @@ export function PanelApp() {
                 <label className="field-label">
                   <span className="row" style={{ gap: '4px' }}>
                     <IconSparkles size={12} className="text-muted" />
-                    <span>{t('覆盖模型名称 (可选，留空则使用服务商默认模型)', 'Override Model (Optional, leave blank to use provider default)')}</span>
+                    <span>{t('覆盖模型名称 (可选，留空则使用服务商默认模型)', 'Override Model (Optional)')}</span>
                   </span>
                 </label>
                 <input
@@ -665,7 +665,7 @@ export function PanelApp() {
               <IconMessageSquare size={16} />
               <span>{t('对话消息流 (Messages)', 'Chat Messages')}</span>
             </div>
-            <div className="row">
+            <div className="row" style={{ gap: '4px' }}>
               <button
                 type="button"
                 className="btn btn-sm"
@@ -741,6 +741,7 @@ export function PanelApp() {
             </div>
             <select
               className="select select-sm"
+              style={{ width: 'auto', maxWidth: '100%' }}
               onChange={(e) => handleApplySchemaTemplate(e.target.value)}
               defaultValue=""
             >
