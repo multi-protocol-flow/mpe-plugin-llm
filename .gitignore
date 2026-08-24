@@ -1,0 +1,6 @@
+/target
+/dist
+*.zip
+*.zip.sha256
+/mpe_plugin_llm
+/mpe_plugin_llm.exe
