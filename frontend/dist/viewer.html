@@ -76,7 +76,8 @@ body {
   font-family: var(--font);
   font-size: 13px;
   line-height: 1.5;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 #root {
@@ -603,6 +604,10 @@ input[type="range"] {
   font-family: var(--mono);
   font-size: 12px;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 420px;
+  white-space: pre;
+  word-break: normal;
 }
 
 .rerank-card {
@@ -7952,6 +7957,30 @@ function ViewerApp() {
       }
     });
   }, []);
+  reactExports.useEffect(() => {
+    let lastReportedHeight = -1;
+    const updateHeight = () => {
+      const root2 = document.getElementById("root");
+      if (!root2) return;
+      const h = Math.ceil(Math.max(root2.offsetHeight, root2.scrollHeight, 280));
+      if (h > 0 && Math.abs(h - lastReportedHeight) >= 4) {
+        lastReportedHeight = h;
+        postResize(h);
+      }
+    };
+    updateHeight();
+    const timer = setTimeout(updateHeight, 60);
+    if (typeof ResizeObserver === "undefined") {
+      return () => clearTimeout(timer);
+    }
+    const ro = new ResizeObserver(() => updateHeight());
+    const root = document.getElementById("root");
+    if (root) ro.observe(root);
+    return () => {
+      clearTimeout(timer);
+      ro.disconnect();
+    };
+  }, [output, streamContent, streamReasoning, showRequestDetails, showReasoning]);
   const handleCopy = (text) => {
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {

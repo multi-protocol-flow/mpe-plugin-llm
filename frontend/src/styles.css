@@ -67,7 +67,8 @@ body {
   font-family: var(--font);
   font-size: 13px;
   line-height: 1.5;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 #root {
@@ -594,6 +595,10 @@ input[type="range"] {
   font-family: var(--mono);
   font-size: 12px;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 420px;
+  white-space: pre;
+  word-break: normal;
 }
 
 .rerank-card {

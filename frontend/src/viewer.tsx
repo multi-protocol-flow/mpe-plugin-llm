@@ -1,7 +1,7 @@
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
-import { initBridge, postError } from './bridge';
+import { initBridge, postError, postResize } from './bridge';
 import { setLocale, t } from './i18n';
 import {
   IconBot,
@@ -83,6 +83,32 @@ export function ViewerApp() {
     });
   }, []);
 
+  useEffect(() => {
+    let lastReportedHeight = -1;
+    const updateHeight = () => {
+      const root = document.getElementById('root');
+      if (!root) return;
+      const h = Math.ceil(Math.max(root.offsetHeight, root.scrollHeight, 280));
+      if (h > 0 && Math.abs(h - lastReportedHeight) >= 4) {
+        lastReportedHeight = h;
+        postResize(h);
+      }
+    };
+
+    updateHeight();
+    const timer = setTimeout(updateHeight, 60);
+
+    if (typeof ResizeObserver === 'undefined') {
+      return () => clearTimeout(timer);
+    }
+    const ro = new ResizeObserver(() => updateHeight());
+    const root = document.getElementById('root');
+    if (root) ro.observe(root);
+    return () => {
+      clearTimeout(timer);
+      ro.disconnect();
+    };
+  }, [output, streamContent, streamReasoning, showRequestDetails, showReasoning]);
   const handleCopy = (text: string) => {
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
