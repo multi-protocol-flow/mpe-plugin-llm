@@ -43,6 +43,7 @@ pub async fn execute_structured(
         provider_uuid: config.provider_uuid,
         provider: config.provider,
         override_model: config.override_model,
+        override_timeout_ms: config.override_timeout_ms,
         messages: config.messages,
         parameters: params,
     };
@@ -174,6 +175,7 @@ async fn execute_chat_with_config(
         node_config.provider_uuid.as_deref(),
         &node_config.provider,
         node_config.override_model.as_deref(),
+        node_config.override_timeout_ms,
     ) {
         Ok(p) => p,
         Err(err) => return ExecuteResult::fail(err),

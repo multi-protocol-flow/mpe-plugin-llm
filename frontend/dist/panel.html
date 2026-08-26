@@ -8069,7 +8069,7 @@ const initialDefaultConfig = {
   return_documents: true
 };
 function PanelApp() {
-  var _a, _b, _c, _d, _e, _f, _g, _h;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
   const [state, setState] = reactExports.useState({
     nodeType: "llm:chat",
     config: initialDefaultConfig,
@@ -8244,47 +8244,147 @@ function PanelApp() {
   if (!state.ready) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "panel", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "card", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "hint", style: { textAlign: "center", padding: "16px" }, children: t("正在加载配置面板...", "Loading configuration panel...") }) }) });
   }
-  const renderProviderFormFields = (isInline) => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: t("服务商预设", "Provider Preset") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "select",
-        {
-          className: "select",
-          onChange: (e) => handleProviderPreset(e.target.value),
-          defaultValue: "",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", disabled: true, children: t("-- 选择快捷预设 --", "-- Select Provider Preset --") }),
-            Object.entries(PROVIDER_PRESETS).map(([key, item]) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: key, children: item.label }, key))
-          ]
-        }
-      )
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-2", children: [
+  const renderProviderFormFields = (isInline) => {
+    var _a2;
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(IconGlobe, { size: 13, className: "text-muted" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 基础地址 (Base URL)", "Base URL") })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: t("服务商预设", "Provider Preset") }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "select",
           {
-            type: "text",
-            className: "input mono",
-            placeholder: "https://api.openai.com/v1",
-            value: provider.base_url || "",
+            className: "select",
+            onChange: (e) => handleProviderPreset(e.target.value),
+            defaultValue: "",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", disabled: true, children: t("-- 选择快捷预设 --", "-- Select Provider Preset --") }),
+              Object.entries(PROVIDER_PRESETS).map(([key, item]) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: key, children: item.label }, key))
+            ]
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(IconGlobe, { size: 13, className: "text-muted" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 基础地址 (Base URL)", "Base URL") })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "text",
+              className: "input mono",
+              placeholder: "https://api.openai.com/v1",
+              value: provider.base_url || "",
+              onChange: (e) => {
+                const val = e.target.value;
+                if (isInline) {
+                  updateConfig((prev) => ({
+                    ...prev,
+                    provider: { ...prev.provider, base_url: val }
+                  }));
+                } else {
+                  updateConfig((prev) => ({ ...prev, base_url: val }));
+                }
+              }
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(IconKey, { size: 13, className: "text-muted" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 密钥 (API Key)", "API Key") })
+          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "password",
+              className: "input mono",
+              placeholder: "sk-...",
+              value: provider.api_key || "",
+              onChange: (e) => {
+                const val = e.target.value;
+                if (isInline) {
+                  updateConfig((prev) => ({
+                    ...prev,
+                    provider: { ...prev.provider, api_key: val }
+                  }));
+                } else {
+                  updateConfig((prev) => ({ ...prev, api_key: val }));
+                }
+              }
+            }
+          )
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", style: { marginBottom: "2px" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(IconSparkles, { size: 13, className: "text-muted" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("模型名称 (Model)", "Model Name") })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: "6px" }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                type: "button",
+                className: "btn btn-sm",
+                onClick: handleFetchModels,
+                disabled: loadingModels,
+                children: loadingModels ? t("拉取中...", "Fetching...") : t("获取模型列表", "Fetch Models")
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                type: "button",
+                className: "btn btn-sm btn-primary",
+                onClick: handleTestConnection,
+                disabled: testStatus.loading,
+                children: testStatus.loading ? t("测试中...", "Testing...") : t("测试连接", "Test Connection")
+              }
+            )
+          ] })
+        ] }),
+        modelsList.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "select",
+          {
+            className: "select mono",
+            value: provider.model || "",
             onChange: (e) => {
               const val = e.target.value;
               if (isInline) {
                 updateConfig((prev) => ({
                   ...prev,
-                  provider: { ...prev.provider, base_url: val }
+                  provider: { ...prev.provider, model: val }
                 }));
               } else {
-                updateConfig((prev) => ({ ...prev, base_url: val }));
+                updateConfig((prev) => ({ ...prev, model: val }));
+              }
+            },
+            children: modelsList.map((m2) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: m2, children: m2 }, m2))
+          }
+        ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "text",
+            className: "input mono",
+            placeholder: "gpt-4o, deepseek-chat, qwen-plus...",
+            value: provider.model || "",
+            onChange: (e) => {
+              const val = e.target.value;
+              if (isInline) {
+                updateConfig((prev) => ({
+                  ...prev,
+                  provider: { ...prev.provider, model: val }
+                }));
+              } else {
+                updateConfig((prev) => ({ ...prev, model: val }));
               }
             }
           }
@@ -8292,123 +8392,36 @@ function PanelApp() {
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(IconKey, { size: 13, className: "text-muted" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 密钥 (API Key)", "API Key") })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(IconClock, { size: 13, className: "text-muted" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("请求超时 (Timeout ms)", "Timeout (ms)") })
         ] }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "input",
           {
-            type: "password",
+            type: "number",
             className: "input mono",
-            placeholder: "sk-...",
-            value: provider.api_key || "",
+            placeholder: "60000",
+            value: isInline ? typeof ((_a2 = config.provider) == null ? void 0 : _a2.timeout_ms) === "number" ? config.provider.timeout_ms : "" : typeof config.timeout_ms === "number" ? config.timeout_ms : "",
             onChange: (e) => {
-              const val = e.target.value;
+              const val = e.target.value === "" ? 6e4 : parseInt(e.target.value, 10) || 6e4;
               if (isInline) {
                 updateConfig((prev) => ({
                   ...prev,
-                  provider: { ...prev.provider, api_key: val }
+                  provider: { ...prev.provider, timeout_ms: val }
                 }));
               } else {
-                updateConfig((prev) => ({ ...prev, api_key: val }));
+                updateConfig((prev) => ({ ...prev, timeout_ms: val }));
               }
             }
           }
         )
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", style: { marginBottom: "2px" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(IconSparkles, { size: 13, className: "text-muted" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("模型名称 (Model)", "Model Name") })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: "6px" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "button",
-            {
-              type: "button",
-              className: "btn btn-sm",
-              onClick: handleFetchModels,
-              disabled: loadingModels,
-              children: loadingModels ? t("拉取中...", "Fetching...") : t("获取模型列表", "Fetch Models")
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "button",
-            {
-              type: "button",
-              className: "btn btn-sm btn-primary",
-              onClick: handleTestConnection,
-              disabled: testStatus.loading,
-              children: testStatus.loading ? t("测试中...", "Testing...") : t("测试连接", "Test Connection")
-            }
-          )
-        ] })
       ] }),
-      modelsList.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "select",
-        {
-          className: "select mono",
-          value: provider.model || "",
-          onChange: (e) => {
-            const val = e.target.value;
-            if (isInline) {
-              updateConfig((prev) => ({
-                ...prev,
-                provider: { ...prev.provider, model: val }
-              }));
-            } else {
-              updateConfig((prev) => ({ ...prev, model: val }));
-            }
-          },
-          children: modelsList.map((m2) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: m2, children: m2 }, m2))
-        }
-      ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "input",
-        {
-          type: "text",
-          className: "input mono",
-          placeholder: "gpt-4o, deepseek-chat, qwen-plus...",
-          value: provider.model || "",
-          onChange: (e) => {
-            const val = e.target.value;
-            if (isInline) {
-              updateConfig((prev) => ({
-                ...prev,
-                provider: { ...prev.provider, model: val }
-              }));
-            } else {
-              updateConfig((prev) => ({ ...prev, model: val }));
-            }
-          }
-        }
-      )
-    ] }),
-    !isInline && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(IconClock, { size: 13, className: "text-muted" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("请求超时 (Timeout ms)", "Timeout (ms)") })
-      ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "input",
-        {
-          type: "number",
-          className: "input mono",
-          placeholder: "60000",
-          value: typeof config.timeout_ms === "number" ? config.timeout_ms : 6e4,
-          onChange: (e) => updateConfig((prev) => ({ ...prev, timeout_ms: parseInt(e.target.value, 10) || 6e4 }))
-        }
-      )
-    ] }),
-    testStatus.message && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `alert ${testStatus.ok ? "alert-green" : "alert-red"}`, children: [
-      testStatus.ok ? /* @__PURE__ */ jsxRuntimeExports.jsx(IconCheckCircle, { size: 14 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(IconXCircle, { size: 14 }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: testStatus.message })
-    ] })
-  ] });
+      testStatus.message && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `alert ${testStatus.ok ? "alert-green" : "alert-red"}`, children: [
+        testStatus.ok ? /* @__PURE__ */ jsxRuntimeExports.jsx(IconCheckCircle, { size: 14 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(IconXCircle, { size: 14 }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: testStatus.message })
+      ] })
+    ] });
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel", children: [
     isProviderNode && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-title", children: [
@@ -8463,13 +8476,20 @@ function PanelApp() {
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "hint", children: t("已绑定服务商节点:", "Linked Provider Node:") }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "mono", style: { fontWeight: 600, color: "var(--accent)", wordBreak: "break-all" }, children: (selectedProviderNode == null ? void 0 : selectedProviderNode.label) || String(config.provider_uuid || "") })
         ] }),
-        (selectedProviderNode == null ? void 0 : selectedProviderNode.config) && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "provider-info-row", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "provider-info-row", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "hint", children: t("服务商地址 / 默认模型:", "Base URL / Default Model:") }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "mono text-muted", style: { wordBreak: "break-all" }, children: [
-            String(selectedProviderNode.config.base_url || ""),
+            String(((_a = selectedProviderNode == null ? void 0 : selectedProviderNode.config) == null ? void 0 : _a.base_url) || "https://api.openai.com/v1"),
             " (",
-            String(selectedProviderNode.config.model || ""),
+            String(((_b = selectedProviderNode == null ? void 0 : selectedProviderNode.config) == null ? void 0 : _b.model) || "gpt-4o"),
             ")"
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "provider-info-row", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "hint", children: t("继承超时时间 (ms):", "Inherited Timeout (ms):") }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "mono text-muted", children: [
+            String(((_c = selectedProviderNode == null ? void 0 : selectedProviderNode.config) == null ? void 0 : _c.timeout_ms) || 6e4),
+            " ms"
           ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", style: { marginTop: "4px" }, children: [
@@ -8482,9 +8502,28 @@ function PanelApp() {
             {
               type: "text",
               className: "input mono input-sm",
-              placeholder: ((_a = selectedProviderNode == null ? void 0 : selectedProviderNode.config) == null ? void 0 : _a.model) ? `如: ${selectedProviderNode.config.model}` : "gpt-4o, deepseek-chat...",
+              placeholder: ((_d = selectedProviderNode == null ? void 0 : selectedProviderNode.config) == null ? void 0 : _d.model) ? t(`如: ${selectedProviderNode.config.model}`, `e.g. ${selectedProviderNode.config.model}`) : "gpt-4o, deepseek-chat...",
               value: String(config.override_model || ""),
               onChange: (e) => updateConfig((prev) => ({ ...prev, override_model: e.target.value }))
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", style: { marginTop: "4px" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(IconClock, { size: 12, className: "text-muted" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("覆盖超时时间 (可选，留空则继承服务商超时)", "Override Timeout ms (Optional)") })
+          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "number",
+              className: "input mono input-sm",
+              placeholder: ((_e = selectedProviderNode == null ? void 0 : selectedProviderNode.config) == null ? void 0 : _e.timeout_ms) ? t(`如: ${selectedProviderNode.config.timeout_ms}`, `e.g. ${selectedProviderNode.config.timeout_ms}`) : "60000",
+              value: typeof config.override_timeout_ms === "number" ? config.override_timeout_ms : "",
+              onChange: (e) => {
+                const val = e.target.value === "" ? void 0 : parseInt(e.target.value, 10);
+                updateConfig((prev) => ({ ...prev, override_timeout_ms: val }));
+              }
             }
           )
         ] })
@@ -8626,7 +8665,7 @@ function PanelApp() {
           "input",
           {
             type: "checkbox",
-            checked: Boolean((_b = config.strict_validation) != null ? _b : true),
+            checked: Boolean((_f = config.strict_validation) != null ? _f : true),
             onChange: (e) => updateConfig((prev) => ({ ...prev, strict_validation: e.target.checked }))
           }
         ),
@@ -8741,7 +8780,7 @@ function PanelApp() {
             "input",
             {
               type: "checkbox",
-              checked: Boolean((_c = config.return_documents) != null ? _c : true),
+              checked: Boolean((_g = config.return_documents) != null ? _g : true),
               onChange: (e) => updateConfig((prev) => ({ ...prev, return_documents: e.target.checked }))
             }
           ),
@@ -8759,7 +8798,7 @@ function PanelApp() {
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
             "Temperature (",
-            Number((_d = parameters.temperature) != null ? _d : 0.7),
+            Number((_h = parameters.temperature) != null ? _h : 0.7),
             ")"
           ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -8769,7 +8808,7 @@ function PanelApp() {
               min: "0",
               max: "2",
               step: "0.05",
-              value: Number((_e = parameters.temperature) != null ? _e : 0.7),
+              value: Number((_i = parameters.temperature) != null ? _i : 0.7),
               onChange: (e) => updateConfig((prev) => ({
                 ...prev,
                 parameters: {
@@ -8783,7 +8822,7 @@ function PanelApp() {
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
             "Top P (",
-            Number((_f = parameters.top_p) != null ? _f : 1),
+            Number((_j = parameters.top_p) != null ? _j : 1),
             ")"
           ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -8793,7 +8832,7 @@ function PanelApp() {
               min: "0",
               max: "1",
               step: "0.05",
-              value: Number((_g = parameters.top_p) != null ? _g : 1),
+              value: Number((_k = parameters.top_p) != null ? _k : 1),
               onChange: (e) => updateConfig((prev) => ({
                 ...prev,
                 parameters: {
@@ -8829,7 +8868,7 @@ function PanelApp() {
           "input",
           {
             type: "checkbox",
-            checked: Boolean((_h = parameters.stream) != null ? _h : true),
+            checked: Boolean((_l = parameters.stream) != null ? _l : true),
             onChange: (e) => updateConfig((prev) => ({
               ...prev,
               parameters: {

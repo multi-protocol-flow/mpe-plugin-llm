@@ -251,6 +251,8 @@ pub struct ChatNodeConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub override_model: Option<String>,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub override_timeout_ms: Option<u64>,
     #[serde(default)]
     pub messages: Vec<ChatMessage>,
 
@@ -270,6 +272,8 @@ pub struct StructuredNodeConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub override_model: Option<String>,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub override_timeout_ms: Option<u64>,
     #[serde(default)]
     pub messages: Vec<ChatMessage>,
 
@@ -301,6 +305,8 @@ pub struct EmbeddingsNodeConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub override_model: Option<String>,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub override_timeout_ms: Option<u64>,
     /// Input text or array of texts to embed.
     #[serde(default)]
     pub input: serde_json::Value,
@@ -341,6 +347,8 @@ pub struct RerankNodeConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub override_model: Option<String>,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub override_timeout_ms: Option<u64>,
     /// The query to rank documents against.
     #[serde(default)]
     pub query: String,
@@ -384,6 +392,7 @@ pub fn resolve_effective_provider(
     provider_uuid: Option<&str>,
     inline_provider: &LlmProviderConfig,
     override_model: Option<&str>,
+    override_timeout_ms: Option<u64>,
 ) -> Result<LlmProviderConfig, String> {
     let mut provider = if let Some(uuid) = provider_uuid.filter(|s| !s.trim().is_empty()) {
         let key = format!("{exec_id}:{uuid}");
@@ -407,9 +416,77 @@ pub fn resolve_effective_provider(
         provider.model = m.to_string();
     }
 
+    if let Some(t) = override_timeout_ms.filter(|&t| t > 0) {
+        provider.timeout_ms = t;
+    }
+
     if provider.base_url.trim().is_empty() {
         return Err(crate::i18n::t("缺少服务商 Base URL", "Missing provider Base URL").to_string());
     }
 
     Ok(provider)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mpe_plugin_sdk::pool::ConnectionPool;
+
+    #[test]
+    fn test_resolve_effective_provider_pool_inheritance_and_override() {
+        let pool = ConnectionPool::new();
+        let pooled_provider = LlmProviderConfig {
+            base_url: "https://api.openai.com/v1".to_string(),
+            api_key: Some("sk-test".to_string()),
+            model: "gpt-4o".to_string(),
+            timeout_ms: 45000,
+            custom_headers: None,
+        };
+        let pooled_provider_clone = pooled_provider.clone();
+        pool.get_or_insert("exec1:node-prov-1", move || pooled_provider_clone);
+
+        let inline_empty = LlmProviderConfig::default();
+        // 1. Inherit timeout_ms from pooled provider
+        let resolved = resolve_effective_provider(
+            &pool,
+            "exec1",
+            Some("node-prov-1"),
+            &inline_empty,
+            None,
+            None,
+        ).expect("should resolve pooled provider");
+        assert_eq!(resolved.timeout_ms, 45000);
+        assert_eq!(resolved.model, "gpt-4o");
+
+        // 2. Override model and timeout_ms over pooled provider
+        let resolved_override = resolve_effective_provider(
+            &pool,
+            "exec1",
+            Some("node-prov-1"),
+            &inline_empty,
+            Some("deepseek-chat"),
+            Some(120000),
+        ).expect("should resolve with override");
+        assert_eq!(resolved_override.timeout_ms, 120000);
+        assert_eq!(resolved_override.model, "deepseek-chat");
+
+        // 3. Inline provider with override
+        let inline_custom = LlmProviderConfig {
+            base_url: "https://api.deepseek.com/v1".to_string(),
+            api_key: None,
+            model: "deepseek-reasoner".to_string(),
+            timeout_ms: 30000,
+            custom_headers: None,
+        };
+        let resolved_inline = resolve_effective_provider(
+            &pool,
+            "exec1",
+            None,
+            &inline_custom,
+            None,
+            Some(90000),
+        ).expect("should resolve inline provider");
+        assert_eq!(resolved_inline.timeout_ms, 90000);
+        assert_eq!(resolved_inline.model, "deepseek-reasoner");
+    }
 }

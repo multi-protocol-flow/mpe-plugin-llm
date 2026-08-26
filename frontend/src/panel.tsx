@@ -523,23 +523,37 @@ export function PanelApp() {
         )}
       </div>
 
-      {!isInline && (
-        <div className="field">
-          <label className="field-label">
-            <span className="row" style={{ gap: '4px' }}>
-              <IconClock size={13} className="text-muted" />
-              <span>{t('请求超时 (Timeout ms)', 'Timeout (ms)')}</span>
-            </span>
-          </label>
-          <input
-            type="number"
-            className="input mono"
-            placeholder="60000"
-            value={typeof config.timeout_ms === 'number' ? config.timeout_ms : 60000}
-            onChange={(e) => updateConfig((prev) => ({ ...prev, timeout_ms: parseInt(e.target.value, 10) || 60000 }))}
-          />
-        </div>
-      )}
+      <div className="field">
+        <label className="field-label">
+          <span className="row" style={{ gap: '4px' }}>
+            <IconClock size={13} className="text-muted" />
+            <span>{t('请求超时 (Timeout ms)', 'Timeout (ms)')}</span>
+          </span>
+        </label>
+        <input
+          type="number"
+          className="input mono"
+          placeholder="60000"
+          value={
+            isInline
+              ? (typeof (config.provider as Record<string, unknown>)?.timeout_ms === 'number'
+                  ? ((config.provider as Record<string, unknown>).timeout_ms as number)
+                  : '')
+              : (typeof config.timeout_ms === 'number' ? config.timeout_ms : '')
+          }
+          onChange={(e) => {
+            const val = e.target.value === '' ? 60000 : parseInt(e.target.value, 10) || 60000;
+            if (isInline) {
+              updateConfig((prev) => ({
+                ...prev,
+                provider: { ...(prev.provider as Record<string, unknown>), timeout_ms: val },
+              }));
+            } else {
+              updateConfig((prev) => ({ ...prev, timeout_ms: val }));
+            }
+          }}
+        />
+      </div>
 
       {testStatus.message && (
         <div className={`alert ${testStatus.ok ? 'alert-green' : 'alert-red'}`}>
@@ -616,14 +630,18 @@ export function PanelApp() {
                   {selectedProviderNode?.label || String(config.provider_uuid || '')}
                 </span>
               </div>
-              {selectedProviderNode?.config && (
-                <div className="provider-info-row">
-                  <span className="hint">{t('服务商地址 / 默认模型:', 'Base URL / Default Model:')}</span>
-                  <span className="mono text-muted" style={{ wordBreak: 'break-all' }}>
-                    {String(selectedProviderNode.config.base_url || '')} ({String(selectedProviderNode.config.model || '')})
-                  </span>
-                </div>
-              )}
+              <div className="provider-info-row">
+                <span className="hint">{t('服务商地址 / 默认模型:', 'Base URL / Default Model:')}</span>
+                <span className="mono text-muted" style={{ wordBreak: 'break-all' }}>
+                  {String(selectedProviderNode?.config?.base_url || 'https://api.openai.com/v1')} ({String(selectedProviderNode?.config?.model || 'gpt-4o')})
+                </span>
+              </div>
+              <div className="provider-info-row">
+                <span className="hint">{t('继承超时时间 (ms):', 'Inherited Timeout (ms):')}</span>
+                <span className="mono text-muted">
+                  {String(selectedProviderNode?.config?.timeout_ms || 60000)} ms
+                </span>
+              </div>
               <div className="field" style={{ marginTop: '4px' }}>
                 <label className="field-label">
                   <span className="row" style={{ gap: '4px' }}>
@@ -634,9 +652,35 @@ export function PanelApp() {
                 <input
                   type="text"
                   className="input mono input-sm"
-                  placeholder={selectedProviderNode?.config?.model ? `如: ${selectedProviderNode.config.model}` : 'gpt-4o, deepseek-chat...'}
+                  placeholder={
+                    selectedProviderNode?.config?.model
+                      ? t(`如: ${selectedProviderNode.config.model}`, `e.g. ${selectedProviderNode.config.model}`)
+                      : 'gpt-4o, deepseek-chat...'
+                  }
                   value={String(config.override_model || '')}
                   onChange={(e) => updateConfig((prev) => ({ ...prev, override_model: e.target.value }))}
+                />
+              </div>
+              <div className="field" style={{ marginTop: '4px' }}>
+                <label className="field-label">
+                  <span className="row" style={{ gap: '4px' }}>
+                    <IconClock size={12} className="text-muted" />
+                    <span>{t('覆盖超时时间 (可选，留空则继承服务商超时)', 'Override Timeout ms (Optional)')}</span>
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  className="input mono input-sm"
+                  placeholder={
+                    selectedProviderNode?.config?.timeout_ms
+                      ? t(`如: ${selectedProviderNode.config.timeout_ms}`, `e.g. ${selectedProviderNode.config.timeout_ms}`)
+                      : '60000'
+                  }
+                  value={typeof config.override_timeout_ms === 'number' ? config.override_timeout_ms : ''}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
+                    updateConfig((prev) => ({ ...prev, override_timeout_ms: val }));
+                  }}
                 />
               </div>
             </div>

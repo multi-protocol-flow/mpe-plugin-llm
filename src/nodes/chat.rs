@@ -27,6 +27,7 @@ pub async fn execute_chat(
         config.provider_uuid.as_deref(),
         &config.provider,
         config.override_model.as_deref(),
+        config.override_timeout_ms,
     ) {
         Ok(p) => p,
         Err(err) => return ExecuteResult::fail(err),

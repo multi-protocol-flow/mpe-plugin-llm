@@ -123,6 +123,7 @@ impl Plugin for LlmPlugin {
                     "provider_uuid": { "type": "string", "title": i18n::t("服务商节点", "Provider Node") },
                     "provider": { "type": "object" },
                     "override_model": { "type": "string" },
+                    "override_timeout_ms": { "type": "integer", "title": i18n::t("覆盖超时(毫秒)", "Override Timeout (ms)") },
                     "messages": { "type": "array" },
                     "parameters": { "type": "object" }
                 }),
@@ -162,6 +163,7 @@ impl Plugin for LlmPlugin {
                     "provider_uuid": { "type": "string", "title": i18n::t("服务商节点", "Provider Node") },
                     "provider": { "type": "object" },
                     "override_model": { "type": "string" },
+                    "override_timeout_ms": { "type": "integer", "title": i18n::t("覆盖超时(毫秒)", "Override Timeout (ms)") },
                     "messages": { "type": "array" },
                     "json_schema": { "type": "object" },
                     "parameters": { "type": "object" },
@@ -188,6 +190,7 @@ impl Plugin for LlmPlugin {
                     "provider_uuid": { "type": "string", "title": i18n::t("服务商节点", "Provider Node") },
                     "provider": { "type": "object" },
                     "override_model": { "type": "string" },
+                    "override_timeout_ms": { "type": "integer", "title": i18n::t("覆盖超时(毫秒)", "Override Timeout (ms)") },
                     "input": { "type": ["string", "array"] }
                 }),
                 &["input"],
@@ -214,6 +217,7 @@ impl Plugin for LlmPlugin {
                     "provider_uuid": { "type": "string", "title": i18n::t("服务商节点", "Provider Node") },
                     "provider": { "type": "object" },
                     "override_model": { "type": "string" },
+                    "override_timeout_ms": { "type": "integer", "title": i18n::t("覆盖超时(毫秒)", "Override Timeout (ms)") },
                     "query": { "type": "string" },
                     "documents": { "type": "array" },
                     "top_n": { "type": "integer" },
