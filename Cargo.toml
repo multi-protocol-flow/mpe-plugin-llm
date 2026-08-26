@@ -1,6 +1,6 @@
 [package]
 name = "mpe-plugin-llm"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "LLM protocol plugin: chat/structured/embeddings/rerank with OpenAI compatibility, streaming, reasoning, and JSON schema validation"
 
