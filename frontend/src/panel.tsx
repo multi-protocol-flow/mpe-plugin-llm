@@ -1,8 +1,9 @@
-import { StrictMode, useCallback, useEffect, useMemo, useState } from 'react';
+import { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 import { initBridge, notifyConfig, postError, uiCall } from './bridge';
 import { setLocale, t } from './i18n';
+import { VariablePicker } from './VariablePicker';
 import {
   IconBot,
   IconSparkles,
@@ -25,17 +26,17 @@ import type { ChatMessage, LlmProviderConfig, PluginIframeInitPayload, PluginIfr
 
 const PROVIDER_PRESETS: Record<string, { label: string; base_url: string; default_model: string }> = {
   openai: {
-    label: 'OpenAI',
+    label: 'OpenAI (Official)',
     base_url: 'https://api.openai.com/v1',
     default_model: 'gpt-4o',
   },
   deepseek: {
-    label: 'DeepSeek',
+    label: 'DeepSeek (Official)',
     base_url: 'https://api.deepseek.com/v1',
     default_model: 'deepseek-chat',
   },
   deepseek_r1: {
-    label: 'DeepSeek (R1 Reasoner)',
+    label: 'DeepSeek R1 (Reasoning)',
     base_url: 'https://api.deepseek.com/v1',
     default_model: 'deepseek-reasoner',
   },
@@ -45,76 +46,63 @@ const PROVIDER_PRESETS: Record<string, { label: string; base_url: string; defaul
     default_model: 'deepseek-ai/DeepSeek-V3',
   },
   qwen: {
-    label: 'Qwen (通义千问 / DashScope)',
+    label: 'Alibaba Qwen (通义千问)',
     base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     default_model: 'qwen-plus',
   },
   ollama: {
-    label: 'Ollama (Local)',
+    label: 'Ollama (Local / 本地)',
     base_url: 'http://localhost:11434/v1',
-    default_model: 'llama3:latest',
+    default_model: 'llama3.1',
   },
   vllm: {
-    label: 'vLLM / Local OpenAI',
+    label: 'vLLM / Local OpenAI Compatible',
     base_url: 'http://localhost:8000/v1',
     default_model: 'default',
   },
   custom: {
-    label: 'Custom Provider',
-    base_url: '',
-    default_model: '',
+    label: 'Custom (自定义 OpenAI 兼容端点)',
+    base_url: 'https://api.openai.com/v1',
+    default_model: 'gpt-4o',
   },
 };
 
 const SCHEMA_TEMPLATES: Record<string, { label: string; schema: Record<string, unknown> }> = {
-  entity: {
-    label: 'Entity Extraction (实体提取)',
+  sentiment: {
+    label: '情感分析 (Sentiment Analysis)',
     schema: {
       type: 'object',
       properties: {
-        entities: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              name: { type: 'string' },
-              category: { type: 'string' },
-              confidence: { type: 'number' },
-            },
-            required: ['name', 'category'],
-          },
-        },
+        sentiment: { type: 'string', enum: ['positive', 'neutral', 'negative'] },
+        confidence: { type: 'number', minimum: 0, maximum: 1 },
+        reason: { type: 'string' },
       },
-      required: ['entities'],
+      required: ['sentiment', 'confidence', 'reason'],
     },
   },
-  classify: {
-    label: 'Classification & Intent (意图分类)',
+  user_profile: {
+    label: '用户实体提取 (User Entity Extraction)',
     schema: {
       type: 'object',
       properties: {
-        category: { type: 'string' },
-        sub_category: { type: 'string' },
-        sentiment: { type: 'string', enum: ['positive', 'neutral', 'negative'] },
-        confidence: { type: 'number' },
-        reasoning: { type: 'string' },
+        name: { type: 'string' },
+        age: { type: 'integer' },
+        email: { type: 'string' },
+        tags: { type: 'array', items: { type: 'string' } },
       },
-      required: ['category', 'sentiment', 'confidence'],
+      required: ['name'],
     },
   },
   summary: {
-    label: 'Summary & Key Points (摘要与要点)',
+    label: '文章结构化摘要 (Article Summary)',
     schema: {
       type: 'object',
       properties: {
         title: { type: 'string' },
-        summary: { type: 'string' },
-        key_points: {
-          type: 'array',
-          items: { type: 'string' },
-        },
+        key_points: { type: 'array', items: { type: 'string' } },
+        conclusion: { type: 'string' },
       },
-      required: ['title', 'summary', 'key_points'],
+      required: ['title', 'key_points', 'conclusion'],
     },
   },
 };
@@ -123,6 +111,7 @@ type PanelState = {
   nodeType: string;
   config: Record<string, unknown>;
   nodes: PluginIframeNodeSnapshot[] | undefined;
+  variables: Record<string, unknown>;
   ready: boolean;
 };
 
@@ -167,6 +156,7 @@ export function PanelApp() {
     nodeType: 'llm:chat',
     config: initialDefaultConfig,
     nodes: undefined,
+    variables: {},
     ready: false,
   });
 
@@ -177,6 +167,16 @@ export function PanelApp() {
   const [schemaError, setSchemaError] = useState<string | null>(null);
   const [documentsText, setDocumentsText] = useState<string>('');
   const [embeddingsInputText, setEmbeddingsInputText] = useState<string>('');
+
+  // Input refs for variable insertion
+  const baseUrlInputRef = useRef<HTMLInputElement>(null);
+  const apiKeyInputRef = useRef<HTMLInputElement>(null);
+  const modelInputRef = useRef<HTMLInputElement>(null);
+  const overrideModelInputRef = useRef<HTMLInputElement>(null);
+  const embeddingsInputRef = useRef<HTMLTextAreaElement>(null);
+  const rerankQueryRef = useRef<HTMLInputElement>(null);
+  const rerankDocsRef = useRef<HTMLTextAreaElement>(null);
+  const messageRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
 
   useEffect(() => {
     return initBridge({
@@ -190,6 +190,7 @@ export function PanelApp() {
           nodeType: payload.nodeType || 'llm:chat',
           config: incomingConfig,
           nodes: payload.nodes,
+          variables: payload.variables || {},
           ready: true,
         });
 
@@ -250,18 +251,20 @@ export function PanelApp() {
   }, [config.provider_uuid, availableProviderNodes]);
 
   // Provider configuration (inline or direct for llm:provider)
+  // Preserves empty strings so clearing inputs does not reset to defaults
+  const inlineProviderConfig = (config.provider as Record<string, unknown>) || {};
   const provider: LlmProviderConfig = isProviderNode
     ? {
-        base_url: String(config.base_url || 'https://api.openai.com/v1'),
-        api_key: config.api_key ? String(config.api_key) : '',
-        model: String(config.model || 'gpt-4o'),
+        base_url: typeof config.base_url === 'string' ? config.base_url : 'https://api.openai.com/v1',
+        api_key: typeof config.api_key === 'string' ? config.api_key : '',
+        model: typeof config.model === 'string' ? config.model : 'gpt-4o',
         timeout_ms: typeof config.timeout_ms === 'number' ? config.timeout_ms : 60000,
       }
-    : (config.provider as LlmProviderConfig) || {
-        base_url: 'https://api.openai.com/v1',
-        api_key: '',
-        model: 'gpt-4o',
-        timeout_ms: 60000,
+    : {
+        base_url: typeof inlineProviderConfig.base_url === 'string' ? inlineProviderConfig.base_url : 'https://api.openai.com/v1',
+        api_key: typeof inlineProviderConfig.api_key === 'string' ? inlineProviderConfig.api_key : '',
+        model: typeof inlineProviderConfig.model === 'string' ? inlineProviderConfig.model : 'gpt-4o',
+        timeout_ms: typeof inlineProviderConfig.timeout_ms === 'number' ? inlineProviderConfig.timeout_ms : 60000,
       };
 
   const messages = (config.messages as ChatMessage[]) || [];
@@ -274,7 +277,7 @@ export function PanelApp() {
       updateConfig((prev) => ({
         ...prev,
         base_url: preset.base_url,
-        model: preset.default_model || String(prev.model || 'gpt-4o'),
+        model: preset.default_model || (typeof prev.model === 'string' ? prev.model : 'gpt-4o'),
       }));
     } else {
       updateConfig((prev) => ({
@@ -398,18 +401,38 @@ export function PanelApp() {
 
       <div className="grid-2">
         <div className="field">
-          <label className="field-label">
-            <span className="row" style={{ gap: '4px' }}>
-              <IconGlobe size={13} className="text-muted" />
-              <span>{t('API 基础地址 (Base URL)', 'Base URL')}</span>
-            </span>
-            <span className="req">*</span>
-          </label>
+          <div className="row-between">
+            <label className="field-label" style={{ margin: 0 }}>
+              <span className="row" style={{ gap: '4px' }}>
+                <IconGlobe size={13} className="text-muted" />
+                <span>{t('API 基础地址 (Base URL)', 'Base URL')}</span>
+              </span>
+              <span className="req">*</span>
+            </label>
+            <VariablePicker
+              variables={state.variables}
+              variant="icon"
+              inputRef={baseUrlInputRef}
+              currentValue={provider.base_url}
+              onValueChange={(val) => {
+                if (isInline) {
+                  updateConfig((prev) => ({
+                    ...prev,
+                    provider: { ...(prev.provider as Record<string, unknown>), base_url: val },
+                  }));
+                } else {
+                  updateConfig((prev) => ({ ...prev, base_url: val }));
+                }
+              }}
+              onSelect={() => {}}
+            />
+          </div>
           <input
+            ref={baseUrlInputRef}
             type="text"
             className="input mono"
             placeholder="https://api.openai.com/v1"
-            value={provider.base_url || ''}
+            value={provider.base_url}
             onChange={(e) => {
               const val = e.target.value;
               if (isInline) {
@@ -425,13 +448,33 @@ export function PanelApp() {
         </div>
 
         <div className="field">
-          <label className="field-label">
-            <span className="row" style={{ gap: '4px' }}>
-              <IconKey size={13} className="text-muted" />
-              <span>{t('API 密钥 (API Key)', 'API Key')}</span>
-            </span>
-          </label>
+          <div className="row-between">
+            <label className="field-label" style={{ margin: 0 }}>
+              <span className="row" style={{ gap: '4px' }}>
+                <IconKey size={13} className="text-muted" />
+                <span>{t('API 密钥 (API Key)', 'API Key')}</span>
+              </span>
+            </label>
+            <VariablePicker
+              variables={state.variables}
+              variant="icon"
+              inputRef={apiKeyInputRef}
+              currentValue={provider.api_key || ''}
+              onValueChange={(val) => {
+                if (isInline) {
+                  updateConfig((prev) => ({
+                    ...prev,
+                    provider: { ...(prev.provider as Record<string, unknown>), api_key: val },
+                  }));
+                } else {
+                  updateConfig((prev) => ({ ...prev, api_key: val }));
+                }
+              }}
+              onSelect={() => {}}
+            />
+          </div>
           <input
+            ref={apiKeyInputRef}
             type="password"
             className="input mono"
             placeholder="sk-..."
@@ -461,6 +504,23 @@ export function PanelApp() {
             <span className="req">*</span>
           </label>
           <div className="row" style={{ gap: '6px' }}>
+            <VariablePicker
+              variables={state.variables}
+              variant="icon"
+              inputRef={modelInputRef}
+              currentValue={provider.model}
+              onValueChange={(val) => {
+                if (isInline) {
+                  updateConfig((prev) => ({
+                    ...prev,
+                    provider: { ...(prev.provider as Record<string, unknown>), model: val },
+                  }));
+                } else {
+                  updateConfig((prev) => ({ ...prev, model: val }));
+                }
+              }}
+              onSelect={() => {}}
+            />
             <button
               type="button"
               className="btn btn-sm"
@@ -483,7 +543,7 @@ export function PanelApp() {
         {modelsList.length > 0 ? (
           <select
             className="select mono"
-            value={provider.model || ''}
+            value={provider.model}
             onChange={(e) => {
               const val = e.target.value;
               if (isInline) {
@@ -504,10 +564,11 @@ export function PanelApp() {
           </select>
         ) : (
           <input
+            ref={modelInputRef}
             type="text"
             className="input mono"
             placeholder="gpt-4o, deepseek-chat, qwen-plus..."
-            value={provider.model || ''}
+            value={provider.model}
             onChange={(e) => {
               const val = e.target.value;
               if (isInline) {
@@ -536,20 +597,25 @@ export function PanelApp() {
           placeholder="60000"
           value={
             isInline
-              ? (typeof (config.provider as Record<string, unknown>)?.timeout_ms === 'number'
-                  ? ((config.provider as Record<string, unknown>).timeout_ms as number)
-                  : '')
-              : (typeof config.timeout_ms === 'number' ? config.timeout_ms : '')
+              ? ((config.provider as Record<string, unknown>)?.timeout_ms ?? '')
+              : (config.timeout_ms ?? '')
           }
           onChange={(e) => {
-            const val = e.target.value === '' ? 60000 : parseInt(e.target.value, 10) || 60000;
+            const raw = e.target.value;
+            const val = raw === '' ? undefined : parseInt(raw, 10);
             if (isInline) {
               updateConfig((prev) => ({
                 ...prev,
-                provider: { ...(prev.provider as Record<string, unknown>), timeout_ms: val },
+                provider: {
+                  ...(prev.provider as Record<string, unknown>),
+                  timeout_ms: val === undefined || isNaN(val) ? undefined : val,
+                },
               }));
             } else {
-              updateConfig((prev) => ({ ...prev, timeout_ms: val }));
+              updateConfig((prev) => ({
+                ...prev,
+                timeout_ms: val === undefined || isNaN(val) ? undefined : val,
+              }));
             }
           }}
         />
@@ -643,13 +709,24 @@ export function PanelApp() {
                 </span>
               </div>
               <div className="field" style={{ marginTop: '4px' }}>
-                <label className="field-label">
-                  <span className="row" style={{ gap: '4px' }}>
-                    <IconSparkles size={12} className="text-muted" />
-                    <span>{t('覆盖模型名称 (可选，留空则使用服务商默认模型)', 'Override Model (Optional)')}</span>
-                  </span>
-                </label>
+                <div className="row-between">
+                  <label className="field-label" style={{ margin: 0 }}>
+                    <span className="row" style={{ gap: '4px' }}>
+                      <IconSparkles size={12} className="text-muted" />
+                      <span>{t('覆盖模型名称 (可选，留空则使用服务商默认模型)', 'Override Model (Optional)')}</span>
+                    </span>
+                  </label>
+                  <VariablePicker
+                    variables={state.variables}
+                    variant="icon"
+                    inputRef={overrideModelInputRef}
+                    currentValue={String(config.override_model || '')}
+                    onValueChange={(val) => updateConfig((prev) => ({ ...prev, override_model: val }))}
+                    onSelect={() => {}}
+                  />
+                </div>
                 <input
+                  ref={overrideModelInputRef}
                   type="text"
                   className="input mono input-sm"
                   placeholder={
@@ -657,7 +734,7 @@ export function PanelApp() {
                       ? t(`如: ${selectedProviderNode.config.model}`, `e.g. ${selectedProviderNode.config.model}`)
                       : 'gpt-4o, deepseek-chat...'
                   }
-                  value={String(config.override_model || '')}
+                  value={String(config.override_model ?? '')}
                   onChange={(e) => updateConfig((prev) => ({ ...prev, override_model: e.target.value }))}
                 />
               </div>
@@ -676,10 +753,14 @@ export function PanelApp() {
                       ? t(`如: ${selectedProviderNode.config.timeout_ms}`, `e.g. ${selectedProviderNode.config.timeout_ms}`)
                       : '60000'
                   }
-                  value={typeof config.override_timeout_ms === 'number' ? config.override_timeout_ms : ''}
+                  value={config.override_timeout_ms !== undefined && config.override_timeout_ms !== null ? String(config.override_timeout_ms) : ''}
                   onChange={(e) => {
-                    const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
-                    updateConfig((prev) => ({ ...prev, override_timeout_ms: val }));
+                    const raw = e.target.value;
+                    const val = raw === '' ? undefined : parseInt(raw, 10);
+                    updateConfig((prev) => ({
+                      ...prev,
+                      override_timeout_ms: val === undefined || isNaN(val) ? undefined : val,
+                    }));
                   }}
                 />
               </div>
@@ -751,22 +832,36 @@ export function PanelApp() {
                     </select>
                     <span className="hint">#{index + 1}</span>
                   </div>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-danger-hover"
-                    onClick={() => deleteMessage(index)}
-                    title={t('删除消息', 'Delete message')}
-                  >
-                    <IconTrash size={13} />
-                  </button>
+                  <div className="row" style={{ gap: '4px' }}>
+                    <VariablePicker
+                      variables={state.variables}
+                      variant="badge"
+                      label={t('插入变量', 'Insert Variable')}
+                      inputRef={{ current: messageRefs.current[index] || null }}
+                      currentValue={msg.content}
+                      onValueChange={(val) => updateMessage(index, 'content', val)}
+                      onSelect={() => {}}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger-hover"
+                      onClick={() => deleteMessage(index)}
+                      title={t('删除消息', 'Delete message')}
+                    >
+                      <IconTrash size={13} />
+                    </button>
+                  </div>
                 </div>
                 <textarea
+                  ref={(el) => {
+                    messageRefs.current[index] = el;
+                  }}
                   className="textarea mono"
                   placeholder={t(
-                    '输入消息内容，支持引用插值如 {{steps.node1.output}}...',
-                    'Enter message content, supports {{steps.node1.output}}...',
+                    '输入消息内容，支持引用流程变量如 {{user_query}} 或点击右上角「插入变量」...',
+                    'Enter message content, supports {{user_query}} or click Insert Variable...',
                   )}
-                  value={msg.content}
+                  value={msg.content ?? ''}
                   onChange={(e) => updateMessage(index, 'content', e.target.value)}
                 />
               </div>
@@ -837,14 +932,36 @@ export function PanelApp() {
             {t('输入需要计算嵌入向量的文本内容，支持直接输入单段文本、多段 JSON 数组，或引用流程变量。', 'Enter text to calculate vector embeddings, supports single text, JSON array of strings, or flow variables.')}
           </p>
           <div className="field">
-            <label className="field-label">
-              <span>{t('文本内容或 JSON 数组 (Text or JSON Array)', 'Text string or JSON array')}</span>
-              <span className="req">*</span>
-            </label>
+            <div className="row-between">
+              <label className="field-label" style={{ margin: 0 }}>
+                <span>{t('文本内容或 JSON 数组 (Text or JSON Array)', 'Text string or JSON array')}</span>
+                <span className="req">*</span>
+              </label>
+              <VariablePicker
+                variables={state.variables}
+                inputRef={embeddingsInputRef}
+                currentValue={embeddingsInputText}
+                onValueChange={(val) => {
+                  setEmbeddingsInputText(val);
+                  try {
+                    const parsed = JSON.parse(val);
+                    if (Array.isArray(parsed)) {
+                      updateConfig((prev) => ({ ...prev, input: parsed }));
+                      return;
+                    }
+                  } catch {
+                    // Keep as raw string
+                  }
+                  updateConfig((prev) => ({ ...prev, input: val }));
+                }}
+                onSelect={() => {}}
+              />
+            </div>
             <textarea
+              ref={embeddingsInputRef}
               className="textarea mono"
               style={{ minHeight: '120px' }}
-              placeholder={t('输入需要计算嵌入向量的文本，如“人工智能发展趋势”，或变量 {{steps.fetch.text}}', 'Enter text to embed, e.g. "AI technology trends", or variable {{steps.fetch.text}}')}
+              placeholder={t('输入需要计算嵌入向量的文本，如“人工智能发展趋势”，或变量 {{text}}', 'Enter text to embed, e.g. "AI technology trends", or variable {{text}}')}
               value={embeddingsInputText}
               onChange={(e) => {
                 const val = e.target.value;
@@ -876,24 +993,57 @@ export function PanelApp() {
             {t('使用 Cross-Encoder 重排模型根据 Query（查询词）对候选文档列表进行语义相关度评分并降序排列。', 'Use cross-encoder model to score and re-rank candidate documents against the query.')}
           </p>
           <div className="field">
-            <label className="field-label">
-              <span>{t('查询语句 (Query / 检索词)', 'Query String')}</span>
-              <span className="req">*</span>
-            </label>
+            <div className="row-between">
+              <label className="field-label" style={{ margin: 0 }}>
+                <span>{t('查询语句 (Query / 检索词)', 'Query String')}</span>
+                <span className="req">*</span>
+              </label>
+              <VariablePicker
+                variables={state.variables}
+                inputRef={rerankQueryRef}
+                currentValue={String(config.query || '')}
+                onValueChange={(val) => updateConfig((prev) => ({ ...prev, query: val }))}
+                onSelect={() => {}}
+              />
+            </div>
             <input
+              ref={rerankQueryRef}
               type="text"
               className="input"
-              placeholder={t('输入搜索查询语句，如“如何配置流程执行器”，或引用 {{steps.input.query}}', 'Enter search query, e.g. "How to configure flow executor", or {{steps.input.query}}')}
-              value={String(config.query || '')}
+              placeholder={t('输入搜索查询语句，如“如何配置流程执行器”，或引用 {{query}}', 'Enter search query, e.g. "How to configure flow executor", or {{query}}')}
+              value={String(config.query ?? '')}
               onChange={(e) => updateConfig((prev) => ({ ...prev, query: e.target.value }))}
             />
           </div>
           <div className="field">
-            <label className="field-label">
-              <span>{t('候选文档列表 (每行一个文档或 JSON 数组)', 'Candidate Documents (one per line or JSON array)')}</span>
-              <span className="req">*</span>
-            </label>
+            <div className="row-between">
+              <label className="field-label" style={{ margin: 0 }}>
+                <span>{t('候选文档列表 (每行一个文档或 JSON 数组)', 'Candidate Documents (one per line or JSON array)')}</span>
+                <span className="req">*</span>
+              </label>
+              <VariablePicker
+                variables={state.variables}
+                inputRef={rerankDocsRef}
+                currentValue={documentsText}
+                onValueChange={(val) => {
+                  setDocumentsText(val);
+                  try {
+                    const parsed = JSON.parse(val);
+                    if (Array.isArray(parsed)) {
+                      updateConfig((prev) => ({ ...prev, documents: parsed.map(String) }));
+                      return;
+                    }
+                  } catch {
+                    // Not JSON array, treat as newline separated
+                  }
+                  const lines = val.split('\n').map((s) => s.trim()).filter(Boolean);
+                  updateConfig((prev) => ({ ...prev, documents: lines }));
+                }}
+                onSelect={() => {}}
+              />
+            </div>
             <textarea
+              ref={rerankDocsRef}
               className="textarea mono"
               style={{ minHeight: '140px' }}
               placeholder={t('候选文档 1\n候选文档 2\n候选文档 3...\n\n或粘贴 JSON 字符串数组 ["文档1", "文档2"]', 'Document 1\nDocument 2\nDocument 3...\n\nOr paste JSON array ["doc 1", "doc 2"]')}
@@ -915,7 +1065,7 @@ export function PanelApp() {
               }}
             />
             <span className="hint">
-              {t('提示：每行代表一段待评估的文档；也支持传入 JSON 数组或变量 {{steps.vector_db.documents}}', 'Tip: Each line represents one candidate doc; supports JSON array or variable {{steps.vector_db.documents}}')}
+              {t('提示：每行代表一段待评估的文档；也支持传入 JSON 数组或变量 {{documents}}', 'Tip: Each line represents one candidate doc; supports JSON array or variable {{documents}}')}
             </span>
           </div>
           <div className="grid-2">
@@ -926,8 +1076,12 @@ export function PanelApp() {
                 className="input"
                 min={1}
                 max={100}
-                value={Number(config.top_n || 3)}
-                onChange={(e) => updateConfig((prev) => ({ ...prev, top_n: parseInt(e.target.value, 10) || 3 }))}
+                value={config.top_n !== undefined && config.top_n !== null ? Number(config.top_n) : 3}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const val = raw === '' ? undefined : parseInt(raw, 10);
+                  updateConfig((prev) => ({ ...prev, top_n: val === undefined || isNaN(val) ? undefined : val }));
+                }}
               />
             </div>
             <div className="field" style={{ justifyContent: 'center' }}>
@@ -1004,16 +1158,18 @@ export function PanelApp() {
                 type="number"
                 className="input input-sm"
                 placeholder="4096"
-                value={parameters.max_tokens ? String(parameters.max_tokens) : ''}
-                onChange={(e) =>
+                value={parameters.max_tokens !== undefined && parameters.max_tokens !== null ? String(parameters.max_tokens) : ''}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const val = raw === '' ? undefined : parseInt(raw, 10);
                   updateConfig((prev) => ({
                     ...prev,
                     parameters: {
                       ...(prev.parameters as Record<string, unknown>),
-                      max_tokens: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                      max_tokens: val === undefined || isNaN(val) ? undefined : val,
                     },
-                  }))
-                }
+                  }));
+                }}
               />
             </div>
           </div>
@@ -1046,7 +1202,8 @@ export function PanelApp() {
 function renderPanel(): void {
   const container = document.getElementById('root');
   if (!container) return;
-  createRoot(container).render(
+  const root = createRoot(container);
+  root.render(
     <StrictMode>
       <PanelApp />
     </StrictMode>,
@@ -1054,19 +1211,15 @@ function renderPanel(): void {
 }
 
 function main(): void {
-  window.addEventListener('error', (event) => {
-    postError(event.message || String(event.error ?? 'unknown panel error'));
-  });
-  window.addEventListener('unhandledrejection', (event) => {
-    const reason = event.reason;
-    postError(reason instanceof Error ? reason.message : String(reason ?? 'unhandled rejection'));
-  });
-  const container = document.getElementById('root');
-  if (container) {
-    renderPanel();
-    return;
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        renderPanel();
+      });
+    } else {
+      renderPanel();
+    }
   }
-  document.addEventListener('DOMContentLoaded', renderPanel);
 }
 
 main();

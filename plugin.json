@@ -1,6 +1,6 @@
 {
   "name": "llm",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "LLM protocol plugin: chat/structured/embeddings/rerank with OpenAI compatibility, streaming, reasoning, and JSON schema validation",
   "entry": {
     "command": "./mpe_plugin_llm"

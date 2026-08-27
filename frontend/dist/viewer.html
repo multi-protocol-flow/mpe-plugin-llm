@@ -13,6 +13,7 @@
 
 :root {
   --bg: #ffffff;
+  --bg-card: #ffffff;
   --bg-subtle: #f8fafc;
   --bg-muted: #f1f5f9;
   --bg-input: #ffffff;
@@ -40,11 +41,11 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0f172a;
+    --bg-card: #1e293b;
     --bg-subtle: #1e293b;
     --bg-muted: #334155;
     --bg-input: #1e293b;
     --border: #334155;
-    --border-focus: #34d399;
     --fg: #f8fafc;
     --fg-muted: #94a3b8;
     --fg-soft: #64748b;
@@ -111,9 +112,8 @@ body {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  overflow: hidden;
+  position: relative;
 }
-
 .card-title {
   font-weight: 600;
   font-size: 13px;
@@ -648,6 +648,282 @@ input[type="range"] {
   50% {
     opacity: 0.1;
   }
+}
+
+/* --- variable picker ----------------------------------------------------- */
+
+.var-picker-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.var-picker-btn {
+  gap: 4px;
+  color: var(--accent);
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.06);
+  font-weight: 500;
+}
+
+.var-picker-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(16, 185, 129, 0.14);
+}
+
+.var-picker-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.var-picker-btn-icon:hover {
+  border-color: var(--accent);
+  background: var(--bg-muted);
+}
+
+.var-picker-btn-badge {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.var-picker-btn-badge:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--accent);
+}
+
+.var-picker-dropdown {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.25), 0 4px 8px -2px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.var-picker-header {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.var-picker-search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.var-picker-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 12px;
+  color: var(--fg);
+  flex: 1;
+  min-width: 0;
+}
+
+.var-picker-clear-btn {
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.var-picker-body {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.var-picker-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.var-picker-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  padding: 2px 4px;
+  letter-spacing: 0.02em;
+}
+
+.var-picker-count {
+  font-size: 10px;
+  background: var(--bg-muted);
+  color: var(--fg-muted);
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
+.var-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.var-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+  transition: all 0.12s ease;
+  width: 100%;
+}
+
+.var-picker-item:hover {
+  background: var(--bg-muted);
+  border-color: var(--border);
+}
+
+.var-picker-item-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.var-picker-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(16, 185, 129, 0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.var-picker-preview {
+  font-size: 11px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.var-picker-insert-hint {
+  font-size: 10px;
+  color: var(--fg-muted);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.var-picker-item:hover .var-picker-insert-hint {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.var-picker-empty {
+  font-size: 11px;
+  color: var(--fg-muted);
+  text-align: center;
+  padding: 10px;
+  font-style: italic;
+}
+
+.var-picker-node-group {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  background: var(--bg);
+  margin-bottom: 3px;
+}
+
+.var-picker-node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.var-picker-node-type {
+  font-size: 9px;
+  font-weight: 700;
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.var-picker-node-label {
+  font-weight: 500;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.var-picker-node-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.var-picker-subitem {
+  padding: 3px 6px;
+  font-size: 11px;
+}
+
+.var-picker-custom {
+  background: rgba(99, 102, 241, 0.06);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.var-picker-footer {
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 10px;
+  color: var(--fg-muted);
 }
 
 </style>
@@ -7708,6 +7984,9 @@ function initBridge(options) {
         }
         if (Array.isArray(initPayload.nodes)) {
           initPayload.nodes;
+        }
+        if (initPayload.variables && typeof initPayload.variables === "object") {
+          initPayload.variables;
         }
         if (initPayload.config && typeof initPayload.config === "object") {
           initPayload.config;

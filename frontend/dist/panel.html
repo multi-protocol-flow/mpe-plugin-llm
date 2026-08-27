@@ -13,6 +13,7 @@
 
 :root {
   --bg: #ffffff;
+  --bg-card: #ffffff;
   --bg-subtle: #f8fafc;
   --bg-muted: #f1f5f9;
   --bg-input: #ffffff;
@@ -40,11 +41,11 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0f172a;
+    --bg-card: #1e293b;
     --bg-subtle: #1e293b;
     --bg-muted: #334155;
     --bg-input: #1e293b;
     --border: #334155;
-    --border-focus: #34d399;
     --fg: #f8fafc;
     --fg-muted: #94a3b8;
     --fg-soft: #64748b;
@@ -111,9 +112,8 @@ body {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  overflow: hidden;
+  position: relative;
 }
-
 .card-title {
   font-weight: 600;
   font-size: 13px;
@@ -648,6 +648,282 @@ input[type="range"] {
   50% {
     opacity: 0.1;
   }
+}
+
+/* --- variable picker ----------------------------------------------------- */
+
+.var-picker-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.var-picker-btn {
+  gap: 4px;
+  color: var(--accent);
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.06);
+  font-weight: 500;
+}
+
+.var-picker-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(16, 185, 129, 0.14);
+}
+
+.var-picker-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.var-picker-btn-icon:hover {
+  border-color: var(--accent);
+  background: var(--bg-muted);
+}
+
+.var-picker-btn-badge {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.var-picker-btn-badge:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--accent);
+}
+
+.var-picker-dropdown {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.25), 0 4px 8px -2px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.var-picker-header {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.var-picker-search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.var-picker-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 12px;
+  color: var(--fg);
+  flex: 1;
+  min-width: 0;
+}
+
+.var-picker-clear-btn {
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.var-picker-body {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.var-picker-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.var-picker-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  padding: 2px 4px;
+  letter-spacing: 0.02em;
+}
+
+.var-picker-count {
+  font-size: 10px;
+  background: var(--bg-muted);
+  color: var(--fg-muted);
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
+.var-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.var-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+  transition: all 0.12s ease;
+  width: 100%;
+}
+
+.var-picker-item:hover {
+  background: var(--bg-muted);
+  border-color: var(--border);
+}
+
+.var-picker-item-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.var-picker-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(16, 185, 129, 0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.var-picker-preview {
+  font-size: 11px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.var-picker-insert-hint {
+  font-size: 10px;
+  color: var(--fg-muted);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.var-picker-item:hover .var-picker-insert-hint {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.var-picker-empty {
+  font-size: 11px;
+  color: var(--fg-muted);
+  text-align: center;
+  padding: 10px;
+  font-style: italic;
+}
+
+.var-picker-node-group {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  background: var(--bg);
+  margin-bottom: 3px;
+}
+
+.var-picker-node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.var-picker-node-type {
+  font-size: 9px;
+  font-weight: 700;
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.var-picker-node-label {
+  font-weight: 500;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.var-picker-node-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.var-picker-subitem {
+  padding: 3px 6px;
+  font-size: 11px;
+}
+
+.var-picker-custom {
+  background: rgba(99, 102, 241, 0.06);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.var-picker-footer {
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 10px;
+  color: var(--fg-muted);
 }
 
 </style>
@@ -7684,9 +7960,6 @@ function postReady() {
 function postResize(height) {
   post("resize", { height });
 }
-function postError(message) {
-  post("error", { message });
-}
 function requestAction(action, params) {
   return new Promise((resolve, reject) => {
     const requestId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random().toString(36).slice(2);
@@ -7737,6 +8010,9 @@ function initBridge(options) {
         }
         if (Array.isArray(initPayload.nodes)) {
           initPayload.nodes;
+        }
+        if (initPayload.variables && typeof initPayload.variables === "object") {
+          initPayload.variables;
         }
         if (initPayload.config && typeof initPayload.config === "object") {
           initPayload.config;
@@ -7893,6 +8169,12 @@ const IconCheckCircle = icon(
     /* @__PURE__ */ jsxRuntimeExports.jsx("polyline", { points: "9 12 12 15 16 10" })
   ] })
 );
+const IconX = icon(
+  /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
+  ] })
+);
 const IconXCircle = icon(
   /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "12", cy: "12", r: "10" }),
@@ -7939,19 +8221,260 @@ const IconInfo = icon(
     /* @__PURE__ */ jsxRuntimeExports.jsx("line", { x1: "12", y1: "8", x2: "12.01", y2: "8" })
   ] })
 );
+const IconSearch = icon(
+  /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "11", cy: "11", r: "8" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("line", { x1: "21", y1: "21", x2: "16.65", y2: "16.65" })
+  ] })
+);
+function insertVariableIntoInput(el2, currentValue, varExpression, onChange) {
+  var _a, _b;
+  const insertion = `{{${varExpression}}}`;
+  if (!el2) {
+    const next2 = (currentValue || "") + insertion;
+    onChange == null ? void 0 : onChange(next2);
+    return next2;
+  }
+  const start = (_a = el2.selectionStart) != null ? _a : currentValue.length;
+  const end = (_b = el2.selectionEnd) != null ? _b : currentValue.length;
+  const next = currentValue.slice(0, start) + insertion + currentValue.slice(end);
+  onChange == null ? void 0 : onChange(next);
+  requestAnimationFrame(() => {
+    try {
+      el2.focus();
+      const newPos = start + insertion.length;
+      el2.setSelectionRange(newPos, newPos);
+    } catch (e) {
+    }
+  });
+  return next;
+}
+function calculateDropdownPosition(buttonEl) {
+  if (!buttonEl) return { position: "fixed", top: "0px", left: "0px", zIndex: 9999 };
+  const btnRect = buttonEl.getBoundingClientRect();
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 400;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 600;
+  const dropdownWidth = Math.min(290, viewportWidth - 20);
+  let left = btnRect.right - dropdownWidth;
+  if (left < 10) {
+    left = Math.max(10, btnRect.left);
+  }
+  if (left + dropdownWidth > viewportWidth - 10) {
+    left = Math.max(10, viewportWidth - dropdownWidth - 10);
+  }
+  let top = btnRect.bottom + 4;
+  const estimatedHeight = 240;
+  if (top + estimatedHeight > viewportHeight && btnRect.top > estimatedHeight + 10) {
+    top = Math.max(10, btnRect.top - estimatedHeight - 4);
+  }
+  return {
+    position: "fixed",
+    top: `${Math.round(top)}px`,
+    left: `${Math.round(left)}px`,
+    width: `${dropdownWidth}px`,
+    maxWidth: `calc(100vw - 20px)`,
+    zIndex: 9999
+  };
+}
+function VariablePicker({
+  variables = {},
+  onSelect,
+  inputRef,
+  currentValue = "",
+  onValueChange,
+  title,
+  variant = "sm",
+  label,
+  className
+}) {
+  const [isOpen, setIsOpen] = reactExports.useState(false);
+  const [search, setSearch] = reactExports.useState("");
+  const [dropdownStyle, setDropdownStyle] = reactExports.useState({});
+  const containerRef = reactExports.useRef(null);
+  const buttonRef = reactExports.useRef(null);
+  const dropdownRef = reactExports.useRef(null);
+  const searchInputRef = reactExports.useRef(null);
+  const updatePosition = reactExports.useCallback(() => {
+    if (!buttonRef.current) return;
+    setDropdownStyle(calculateDropdownPosition(buttonRef.current));
+  }, []);
+  reactExports.useLayoutEffect(() => {
+    if (!isOpen) return;
+    updatePosition();
+  }, [isOpen, updatePosition]);
+  reactExports.useEffect(() => {
+    if (!isOpen) return;
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    const handleOutsideClick = (e) => {
+      const target = e.target;
+      if (containerRef.current && !containerRef.current.contains(target) && dropdownRef.current && !dropdownRef.current.contains(target)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, updatePosition]);
+  reactExports.useEffect(() => {
+    if (!isOpen) {
+      setSearch("");
+    }
+  }, [isOpen]);
+  const filteredVariables = reactExports.useMemo(() => {
+    const entries = Object.entries(variables || {});
+    if (!search.trim()) return entries;
+    const q2 = search.toLowerCase();
+    return entries.filter(([name, val]) => {
+      return name.toLowerCase().includes(q2) || String(val != null ? val : "").toLowerCase().includes(q2);
+    });
+  }, [variables, search]);
+  const handleSelect = (varExpr) => {
+    if (inputRef && inputRef.current !== void 0) {
+      insertVariableIntoInput(inputRef.current, currentValue, varExpr, onValueChange);
+    }
+    onSelect(varExpr);
+    setIsOpen(false);
+  };
+  const handleToggle = (e) => {
+    e.stopPropagation();
+    if (!isOpen) {
+      setDropdownStyle(calculateDropdownPosition(buttonRef.current));
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "var-picker-wrapper", ref: containerRef, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "button",
+      {
+        ref: buttonRef,
+        type: "button",
+        className: className || (variant === "icon" ? "var-picker-btn-icon" : variant === "badge" ? "var-picker-btn-badge" : "btn btn-sm var-picker-btn"),
+        onClick: handleToggle,
+        title: title || t("选择并插入流程变量", "Select & Insert Variable"),
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(IconBraces, { size: variant === "icon" ? 14 : 12 }),
+          variant !== "icon" && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: label || t("选变量", "Variables") })
+        ]
+      }
+    ),
+    isOpen && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        ref: dropdownRef,
+        className: "var-picker-dropdown",
+        style: dropdownStyle,
+        onClick: (e) => e.stopPropagation(),
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "var-picker-header", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "var-picker-search-box", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(IconSearch, { size: 13, className: "text-muted" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                ref: searchInputRef,
+                autoFocus: true,
+                type: "text",
+                className: "var-picker-search-input",
+                placeholder: t("搜索可用变量...", "Search variables..."),
+                value: search,
+                onChange: (e) => setSearch(e.target.value)
+              }
+            ),
+            search && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                type: "button",
+                className: "var-picker-clear-btn",
+                onClick: () => setSearch(""),
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(IconX, { size: 12 })
+              }
+            )
+          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "var-picker-body", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "var-picker-section", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "var-picker-section-title", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(IconGlobe, { size: 11 }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("可用流程变量", "Available Flow Variables") })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "var-picker-count", children: filteredVariables.length })
+              ] }),
+              filteredVariables.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "var-picker-list", children: filteredVariables.map(([name, val]) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "button",
+                {
+                  type: "button",
+                  className: "var-picker-item",
+                  onClick: () => handleSelect(name),
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "var-picker-item-main", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "var-picker-tag", children: `{{${name}}}` }),
+                      val !== void 0 && val !== null && val !== "" && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "var-picker-preview", title: String(val), children: [
+                        "= ",
+                        typeof val === "object" ? JSON.stringify(val) : String(val)
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "var-picker-insert-hint", children: t("插入", "Insert") })
+                  ]
+                },
+                name
+              )) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "var-picker-empty", children: search ? t("无匹配变量", "No matching variables") : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: t("当前流程暂无定义变量", "No flow variables defined") }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontSize: "10px", marginTop: "4px", opacity: 0.8 }, children: t(
+                  "可在「环境管理」、流程初始变量或「变量提取」节点中定义",
+                  "Define them in Environments, Initial Variables, or Variable Extractor nodes"
+                ) })
+              ] }) })
+            ] }),
+            search.trim() && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "var-picker-section", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                type: "button",
+                className: "var-picker-item var-picker-custom",
+                onClick: () => handleSelect(search.trim()),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "var-picker-item-main", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "var-picker-tag", children: `{{${search.trim()}}}` }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "var-picker-preview", children: t("自定义变量名", "Custom variable name") })
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "var-picker-insert-hint", children: t("插入", "Insert") })
+                ]
+              }
+            ) })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "var-picker-footer", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "hint", children: t(
+            "支持流程变量、环境变量与变量提取节点定义的变量",
+            "Supports Flow, Environment, and Extracted variables"
+          ) }) })
+        ]
+      }
+    )
+  ] });
+}
 const PROVIDER_PRESETS = {
   openai: {
-    label: "OpenAI",
+    label: "OpenAI (Official)",
     base_url: "https://api.openai.com/v1",
     default_model: "gpt-4o"
   },
   deepseek: {
-    label: "DeepSeek",
+    label: "DeepSeek (Official)",
     base_url: "https://api.deepseek.com/v1",
     default_model: "deepseek-chat"
   },
   deepseek_r1: {
-    label: "DeepSeek (R1 Reasoner)",
+    label: "DeepSeek R1 (Reasoning)",
     base_url: "https://api.deepseek.com/v1",
     default_model: "deepseek-reasoner"
   },
@@ -7961,75 +8484,62 @@ const PROVIDER_PRESETS = {
     default_model: "deepseek-ai/DeepSeek-V3"
   },
   qwen: {
-    label: "Qwen (通义千问 / DashScope)",
+    label: "Alibaba Qwen (通义千问)",
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     default_model: "qwen-plus"
   },
   ollama: {
-    label: "Ollama (Local)",
+    label: "Ollama (Local / 本地)",
     base_url: "http://localhost:11434/v1",
-    default_model: "llama3:latest"
+    default_model: "llama3.1"
   },
   vllm: {
-    label: "vLLM / Local OpenAI",
+    label: "vLLM / Local OpenAI Compatible",
     base_url: "http://localhost:8000/v1",
     default_model: "default"
   },
   custom: {
-    label: "Custom Provider",
-    base_url: "",
-    default_model: ""
+    label: "Custom (自定义 OpenAI 兼容端点)",
+    base_url: "https://api.openai.com/v1",
+    default_model: "gpt-4o"
   }
 };
 const SCHEMA_TEMPLATES = {
-  entity: {
-    label: "Entity Extraction (实体提取)",
+  sentiment: {
+    label: "情感分析 (Sentiment Analysis)",
     schema: {
       type: "object",
       properties: {
-        entities: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              category: { type: "string" },
-              confidence: { type: "number" }
-            },
-            required: ["name", "category"]
-          }
-        }
+        sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
+        confidence: { type: "number", minimum: 0, maximum: 1 },
+        reason: { type: "string" }
       },
-      required: ["entities"]
+      required: ["sentiment", "confidence", "reason"]
     }
   },
-  classify: {
-    label: "Classification & Intent (意图分类)",
+  user_profile: {
+    label: "用户实体提取 (User Entity Extraction)",
     schema: {
       type: "object",
       properties: {
-        category: { type: "string" },
-        sub_category: { type: "string" },
-        sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
-        confidence: { type: "number" },
-        reasoning: { type: "string" }
+        name: { type: "string" },
+        age: { type: "integer" },
+        email: { type: "string" },
+        tags: { type: "array", items: { type: "string" } }
       },
-      required: ["category", "sentiment", "confidence"]
+      required: ["name"]
     }
   },
   summary: {
-    label: "Summary & Key Points (摘要与要点)",
+    label: "文章结构化摘要 (Article Summary)",
     schema: {
       type: "object",
       properties: {
         title: { type: "string" },
-        summary: { type: "string" },
-        key_points: {
-          type: "array",
-          items: { type: "string" }
-        }
+        key_points: { type: "array", items: { type: "string" } },
+        conclusion: { type: "string" }
       },
-      required: ["title", "summary", "key_points"]
+      required: ["title", "key_points", "conclusion"]
     }
   }
 };
@@ -8069,11 +8579,12 @@ const initialDefaultConfig = {
   return_documents: true
 };
 function PanelApp() {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
   const [state, setState] = reactExports.useState({
     nodeType: "llm:chat",
     config: initialDefaultConfig,
     nodes: void 0,
+    variables: {},
     ready: false
   });
   const [testStatus, setTestStatus] = reactExports.useState({});
@@ -8083,6 +8594,14 @@ function PanelApp() {
   const [schemaError, setSchemaError] = reactExports.useState(null);
   const [documentsText, setDocumentsText] = reactExports.useState("");
   const [embeddingsInputText, setEmbeddingsInputText] = reactExports.useState("");
+  const baseUrlInputRef = reactExports.useRef(null);
+  const apiKeyInputRef = reactExports.useRef(null);
+  const modelInputRef = reactExports.useRef(null);
+  const overrideModelInputRef = reactExports.useRef(null);
+  const embeddingsInputRef = reactExports.useRef(null);
+  const rerankQueryRef = reactExports.useRef(null);
+  const rerankDocsRef = reactExports.useRef(null);
+  const messageRefs = reactExports.useRef({});
   reactExports.useEffect(() => {
     return initBridge({
       onInit: (payload) => {
@@ -8092,6 +8611,7 @@ function PanelApp() {
           nodeType: payload.nodeType || "llm:chat",
           config: incomingConfig,
           nodes: payload.nodes,
+          variables: payload.variables || {},
           ready: true
         });
         if (incomingConfig.json_schema) {
@@ -8141,16 +8661,17 @@ function PanelApp() {
     if (!uuid) return null;
     return availableProviderNodes.find((n2) => n2.uuid === uuid) || null;
   }, [config.provider_uuid, availableProviderNodes]);
+  const inlineProviderConfig = config.provider || {};
   const provider = isProviderNode ? {
-    base_url: String(config.base_url || "https://api.openai.com/v1"),
-    api_key: config.api_key ? String(config.api_key) : "",
-    model: String(config.model || "gpt-4o"),
+    base_url: typeof config.base_url === "string" ? config.base_url : "https://api.openai.com/v1",
+    api_key: typeof config.api_key === "string" ? config.api_key : "",
+    model: typeof config.model === "string" ? config.model : "gpt-4o",
     timeout_ms: typeof config.timeout_ms === "number" ? config.timeout_ms : 6e4
-  } : config.provider || {
-    base_url: "https://api.openai.com/v1",
-    api_key: "",
-    model: "gpt-4o",
-    timeout_ms: 6e4
+  } : {
+    base_url: typeof inlineProviderConfig.base_url === "string" ? inlineProviderConfig.base_url : "https://api.openai.com/v1",
+    api_key: typeof inlineProviderConfig.api_key === "string" ? inlineProviderConfig.api_key : "",
+    model: typeof inlineProviderConfig.model === "string" ? inlineProviderConfig.model : "gpt-4o",
+    timeout_ms: typeof inlineProviderConfig.timeout_ms === "number" ? inlineProviderConfig.timeout_ms : 6e4
   };
   const messages = config.messages || [];
   const parameters = config.parameters || {};
@@ -8161,7 +8682,7 @@ function PanelApp() {
       updateConfig((prev) => ({
         ...prev,
         base_url: preset.base_url,
-        model: preset.default_model || String(prev.model || "gpt-4o")
+        model: preset.default_model || (typeof prev.model === "string" ? prev.model : "gpt-4o")
       }));
     } else {
       updateConfig((prev) => {
@@ -8245,7 +8766,7 @@ function PanelApp() {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "panel", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "card", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "hint", style: { textAlign: "center", padding: "16px" }, children: t("正在加载配置面板...", "Loading configuration panel...") }) }) });
   }
   const renderProviderFormFields = (isInline) => {
-    var _a2;
+    var _a2, _b2, _c2;
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: t("服务商预设", "Provider Preset") }),
@@ -8264,20 +8785,44 @@ function PanelApp() {
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-2", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(IconGlobe, { size: 13, className: "text-muted" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 基础地址 (Base URL)", "Base URL") })
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(IconGlobe, { size: 13, className: "text-muted" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 基础地址 (Base URL)", "Base URL") })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              VariablePicker,
+              {
+                variables: state.variables,
+                variant: "icon",
+                inputRef: baseUrlInputRef,
+                currentValue: provider.base_url,
+                onValueChange: (val) => {
+                  if (isInline) {
+                    updateConfig((prev) => ({
+                      ...prev,
+                      provider: { ...prev.provider, base_url: val }
+                    }));
+                  } else {
+                    updateConfig((prev) => ({ ...prev, base_url: val }));
+                  }
+                },
+                onSelect: () => {
+                }
+              }
+            )
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "input",
             {
+              ref: baseUrlInputRef,
               type: "text",
               className: "input mono",
               placeholder: "https://api.openai.com/v1",
-              value: provider.base_url || "",
+              value: provider.base_url,
               onChange: (e) => {
                 const val = e.target.value;
                 if (isInline) {
@@ -8293,13 +8838,37 @@ function PanelApp() {
           )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(IconKey, { size: 13, className: "text-muted" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 密钥 (API Key)", "API Key") })
-          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", style: { margin: 0 }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(IconKey, { size: 13, className: "text-muted" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 密钥 (API Key)", "API Key") })
+            ] }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              VariablePicker,
+              {
+                variables: state.variables,
+                variant: "icon",
+                inputRef: apiKeyInputRef,
+                currentValue: provider.api_key || "",
+                onValueChange: (val) => {
+                  if (isInline) {
+                    updateConfig((prev) => ({
+                      ...prev,
+                      provider: { ...prev.provider, api_key: val }
+                    }));
+                  } else {
+                    updateConfig((prev) => ({ ...prev, api_key: val }));
+                  }
+                },
+                onSelect: () => {
+                }
+              }
+            )
+          ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "input",
             {
+              ref: apiKeyInputRef,
               type: "password",
               className: "input mono",
               placeholder: "sk-...",
@@ -8330,6 +8899,27 @@ function PanelApp() {
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: "6px" }, children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(
+              VariablePicker,
+              {
+                variables: state.variables,
+                variant: "icon",
+                inputRef: modelInputRef,
+                currentValue: provider.model,
+                onValueChange: (val) => {
+                  if (isInline) {
+                    updateConfig((prev) => ({
+                      ...prev,
+                      provider: { ...prev.provider, model: val }
+                    }));
+                  } else {
+                    updateConfig((prev) => ({ ...prev, model: val }));
+                  }
+                },
+                onSelect: () => {
+                }
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
               "button",
               {
                 type: "button",
@@ -8355,7 +8945,7 @@ function PanelApp() {
           "select",
           {
             className: "select mono",
-            value: provider.model || "",
+            value: provider.model,
             onChange: (e) => {
               const val = e.target.value;
               if (isInline) {
@@ -8372,10 +8962,11 @@ function PanelApp() {
         ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
           "input",
           {
+            ref: modelInputRef,
             type: "text",
             className: "input mono",
             placeholder: "gpt-4o, deepseek-chat, qwen-plus...",
-            value: provider.model || "",
+            value: provider.model,
             onChange: (e) => {
               const val = e.target.value;
               if (isInline) {
@@ -8401,16 +8992,23 @@ function PanelApp() {
             type: "number",
             className: "input mono",
             placeholder: "60000",
-            value: isInline ? typeof ((_a2 = config.provider) == null ? void 0 : _a2.timeout_ms) === "number" ? config.provider.timeout_ms : "" : typeof config.timeout_ms === "number" ? config.timeout_ms : "",
+            value: isInline ? (_b2 = (_a2 = config.provider) == null ? void 0 : _a2.timeout_ms) != null ? _b2 : "" : (_c2 = config.timeout_ms) != null ? _c2 : "",
             onChange: (e) => {
-              const val = e.target.value === "" ? 6e4 : parseInt(e.target.value, 10) || 6e4;
+              const raw = e.target.value;
+              const val = raw === "" ? void 0 : parseInt(raw, 10);
               if (isInline) {
                 updateConfig((prev) => ({
                   ...prev,
-                  provider: { ...prev.provider, timeout_ms: val }
+                  provider: {
+                    ...prev.provider,
+                    timeout_ms: val === void 0 || isNaN(val) ? void 0 : val
+                  }
                 }));
               } else {
-                updateConfig((prev) => ({ ...prev, timeout_ms: val }));
+                updateConfig((prev) => ({
+                  ...prev,
+                  timeout_ms: val === void 0 || isNaN(val) ? void 0 : val
+                }));
               }
             }
           }
@@ -8493,17 +9091,32 @@ function PanelApp() {
           ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", style: { marginTop: "4px" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(IconSparkles, { size: 12, className: "text-muted" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("覆盖模型名称 (可选，留空则使用服务商默认模型)", "Override Model (Optional)") })
-          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", style: { margin: 0 }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(IconSparkles, { size: 12, className: "text-muted" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("覆盖模型名称 (可选，留空则使用服务商默认模型)", "Override Model (Optional)") })
+            ] }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              VariablePicker,
+              {
+                variables: state.variables,
+                variant: "icon",
+                inputRef: overrideModelInputRef,
+                currentValue: String(config.override_model || ""),
+                onValueChange: (val) => updateConfig((prev) => ({ ...prev, override_model: val })),
+                onSelect: () => {
+                }
+              }
+            )
+          ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "input",
             {
+              ref: overrideModelInputRef,
               type: "text",
               className: "input mono input-sm",
               placeholder: ((_d = selectedProviderNode == null ? void 0 : selectedProviderNode.config) == null ? void 0 : _d.model) ? t(`如: ${selectedProviderNode.config.model}`, `e.g. ${selectedProviderNode.config.model}`) : "gpt-4o, deepseek-chat...",
-              value: String(config.override_model || ""),
+              value: String((_e = config.override_model) != null ? _e : ""),
               onChange: (e) => updateConfig((prev) => ({ ...prev, override_model: e.target.value }))
             }
           )
@@ -8518,11 +9131,15 @@ function PanelApp() {
             {
               type: "number",
               className: "input mono input-sm",
-              placeholder: ((_e = selectedProviderNode == null ? void 0 : selectedProviderNode.config) == null ? void 0 : _e.timeout_ms) ? t(`如: ${selectedProviderNode.config.timeout_ms}`, `e.g. ${selectedProviderNode.config.timeout_ms}`) : "60000",
-              value: typeof config.override_timeout_ms === "number" ? config.override_timeout_ms : "",
+              placeholder: ((_f = selectedProviderNode == null ? void 0 : selectedProviderNode.config) == null ? void 0 : _f.timeout_ms) ? t(`如: ${selectedProviderNode.config.timeout_ms}`, `e.g. ${selectedProviderNode.config.timeout_ms}`) : "60000",
+              value: config.override_timeout_ms !== void 0 && config.override_timeout_ms !== null ? String(config.override_timeout_ms) : "",
               onChange: (e) => {
-                const val = e.target.value === "" ? void 0 : parseInt(e.target.value, 10);
-                updateConfig((prev) => ({ ...prev, override_timeout_ms: val }));
+                const raw = e.target.value;
+                const val = raw === "" ? void 0 : parseInt(raw, 10);
+                updateConfig((prev) => ({
+                  ...prev,
+                  override_timeout_ms: val === void 0 || isNaN(val) ? void 0 : val
+                }));
               }
             }
           )
@@ -8581,52 +9198,73 @@ function PanelApp() {
           )
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col", children: messages.map((msg, index) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `msg-item msg-role-${msg.role}`, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "select",
-              {
-                className: "select select-sm",
-                value: msg.role,
-                onChange: (e) => updateMessage(index, "role", e.target.value),
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "system", children: "System" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "user", children: "User" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "assistant", children: "Assistant" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "tool", children: "Tool" })
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "hint", children: [
-              "#",
-              index + 1
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col", children: messages.map((msg, index) => {
+        var _a2;
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `msg-item msg-role-${msg.role}`, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "select",
+                {
+                  className: "select select-sm",
+                  value: msg.role,
+                  onChange: (e) => updateMessage(index, "role", e.target.value),
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "system", children: "System" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "user", children: "User" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "assistant", children: "Assistant" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "tool", children: "Tool" })
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "hint", children: [
+                "#",
+                index + 1
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: "4px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                VariablePicker,
+                {
+                  variables: state.variables,
+                  variant: "badge",
+                  label: t("插入变量", "Insert Variable"),
+                  inputRef: { current: messageRefs.current[index] || null },
+                  currentValue: msg.content,
+                  onValueChange: (val) => updateMessage(index, "content", val),
+                  onSelect: () => {
+                  }
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  type: "button",
+                  className: "btn btn-sm btn-danger-hover",
+                  onClick: () => deleteMessage(index),
+                  title: t("删除消息", "Delete message"),
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(IconTrash, { size: 13 })
+                }
+              )
             ] })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "button",
+            "textarea",
             {
-              type: "button",
-              className: "btn btn-sm btn-danger-hover",
-              onClick: () => deleteMessage(index),
-              title: t("删除消息", "Delete message"),
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(IconTrash, { size: 13 })
+              ref: (el2) => {
+                messageRefs.current[index] = el2;
+              },
+              className: "textarea mono",
+              placeholder: t(
+                "输入消息内容，支持引用流程变量如 {{user_query}} 或点击右上角「插入变量」...",
+                "Enter message content, supports {{user_query}} or click Insert Variable..."
+              ),
+              value: (_a2 = msg.content) != null ? _a2 : "",
+              onChange: (e) => updateMessage(index, "content", e.target.value)
             }
           )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "textarea",
-          {
-            className: "textarea mono",
-            placeholder: t(
-              "输入消息内容，支持引用插值如 {{steps.node1.output}}...",
-              "Enter message content, supports {{steps.node1.output}}..."
-            ),
-            value: msg.content,
-            onChange: (e) => updateMessage(index, "content", e.target.value)
-          }
-        )
-      ] }, index)) })
+        ] }, index);
+      }) })
     ] }),
     nodeType2 === "llm:structured" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
@@ -8665,7 +9303,7 @@ function PanelApp() {
           "input",
           {
             type: "checkbox",
-            checked: Boolean((_f = config.strict_validation) != null ? _f : true),
+            checked: Boolean((_g = config.strict_validation) != null ? _g : true),
             onChange: (e) => updateConfig((prev) => ({ ...prev, strict_validation: e.target.checked }))
           }
         ),
@@ -8680,16 +9318,41 @@ function PanelApp() {
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "card-desc", children: t("输入需要计算嵌入向量的文本内容，支持直接输入单段文本、多段 JSON 数组，或引用流程变量。", "Enter text to calculate vector embeddings, supports single text, JSON array of strings, or flow variables.") }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("文本内容或 JSON 数组 (Text or JSON Array)", "Text string or JSON array") }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("文本内容或 JSON 数组 (Text or JSON Array)", "Text string or JSON array") }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            VariablePicker,
+            {
+              variables: state.variables,
+              inputRef: embeddingsInputRef,
+              currentValue: embeddingsInputText,
+              onValueChange: (val) => {
+                setEmbeddingsInputText(val);
+                try {
+                  const parsed = JSON.parse(val);
+                  if (Array.isArray(parsed)) {
+                    updateConfig((prev) => ({ ...prev, input: parsed }));
+                    return;
+                  }
+                } catch (e) {
+                }
+                updateConfig((prev) => ({ ...prev, input: val }));
+              },
+              onSelect: () => {
+              }
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "textarea",
           {
+            ref: embeddingsInputRef,
             className: "textarea mono",
             style: { minHeight: "120px" },
-            placeholder: t("输入需要计算嵌入向量的文本，如“人工智能发展趋势”，或变量 {{steps.fetch.text}}", 'Enter text to embed, e.g. "AI technology trends", or variable {{steps.fetch.text}}'),
+            placeholder: t("输入需要计算嵌入向量的文本，如“人工智能发展趋势”，或变量 {{text}}", 'Enter text to embed, e.g. "AI technology trends", or variable {{text}}'),
             value: embeddingsInputText,
             onChange: (e) => {
               const val = e.target.value;
@@ -8715,29 +9378,69 @@ function PanelApp() {
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "card-desc", children: t("使用 Cross-Encoder 重排模型根据 Query（查询词）对候选文档列表进行语义相关度评分并降序排列。", "Use cross-encoder model to score and re-rank candidate documents against the query.") }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("查询语句 (Query / 检索词)", "Query String") }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("查询语句 (Query / 检索词)", "Query String") }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            VariablePicker,
+            {
+              variables: state.variables,
+              inputRef: rerankQueryRef,
+              currentValue: String(config.query || ""),
+              onValueChange: (val) => updateConfig((prev) => ({ ...prev, query: val })),
+              onSelect: () => {
+              }
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "input",
           {
+            ref: rerankQueryRef,
             type: "text",
             className: "input",
-            placeholder: t("输入搜索查询语句，如“如何配置流程执行器”，或引用 {{steps.input.query}}", 'Enter search query, e.g. "How to configure flow executor", or {{steps.input.query}}'),
-            value: String(config.query || ""),
+            placeholder: t("输入搜索查询语句，如“如何配置流程执行器”，或引用 {{query}}", 'Enter search query, e.g. "How to configure flow executor", or {{query}}'),
+            value: String((_h = config.query) != null ? _h : ""),
             onChange: (e) => updateConfig((prev) => ({ ...prev, query: e.target.value }))
           }
         )
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("候选文档列表 (每行一个文档或 JSON 数组)", "Candidate Documents (one per line or JSON array)") }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("候选文档列表 (每行一个文档或 JSON 数组)", "Candidate Documents (one per line or JSON array)") }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            VariablePicker,
+            {
+              variables: state.variables,
+              inputRef: rerankDocsRef,
+              currentValue: documentsText,
+              onValueChange: (val) => {
+                setDocumentsText(val);
+                try {
+                  const parsed = JSON.parse(val);
+                  if (Array.isArray(parsed)) {
+                    updateConfig((prev) => ({ ...prev, documents: parsed.map(String) }));
+                    return;
+                  }
+                } catch (e) {
+                }
+                const lines = val.split("\n").map((s) => s.trim()).filter(Boolean);
+                updateConfig((prev) => ({ ...prev, documents: lines }));
+              },
+              onSelect: () => {
+              }
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "textarea",
           {
+            ref: rerankDocsRef,
             className: "textarea mono",
             style: { minHeight: "140px" },
             placeholder: t('候选文档 1\n候选文档 2\n候选文档 3...\n\n或粘贴 JSON 字符串数组 ["文档1", "文档2"]', 'Document 1\nDocument 2\nDocument 3...\n\nOr paste JSON array ["doc 1", "doc 2"]'),
@@ -8758,7 +9461,7 @@ function PanelApp() {
             }
           }
         ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "hint", children: t("提示：每行代表一段待评估的文档；也支持传入 JSON 数组或变量 {{steps.vector_db.documents}}", "Tip: Each line represents one candidate doc; supports JSON array or variable {{steps.vector_db.documents}}") })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "hint", children: t("提示：每行代表一段待评估的文档；也支持传入 JSON 数组或变量 {{documents}}", "Tip: Each line represents one candidate doc; supports JSON array or variable {{documents}}") })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-2", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
@@ -8770,8 +9473,12 @@ function PanelApp() {
               className: "input",
               min: 1,
               max: 100,
-              value: Number(config.top_n || 3),
-              onChange: (e) => updateConfig((prev) => ({ ...prev, top_n: parseInt(e.target.value, 10) || 3 }))
+              value: config.top_n !== void 0 && config.top_n !== null ? Number(config.top_n) : 3,
+              onChange: (e) => {
+                const raw = e.target.value;
+                const val = raw === "" ? void 0 : parseInt(raw, 10);
+                updateConfig((prev) => ({ ...prev, top_n: val === void 0 || isNaN(val) ? void 0 : val }));
+              }
             }
           )
         ] }),
@@ -8780,7 +9487,7 @@ function PanelApp() {
             "input",
             {
               type: "checkbox",
-              checked: Boolean((_g = config.return_documents) != null ? _g : true),
+              checked: Boolean((_i = config.return_documents) != null ? _i : true),
               onChange: (e) => updateConfig((prev) => ({ ...prev, return_documents: e.target.checked }))
             }
           ),
@@ -8798,7 +9505,7 @@ function PanelApp() {
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
             "Temperature (",
-            Number((_h = parameters.temperature) != null ? _h : 0.7),
+            Number((_j = parameters.temperature) != null ? _j : 0.7),
             ")"
           ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -8808,7 +9515,7 @@ function PanelApp() {
               min: "0",
               max: "2",
               step: "0.05",
-              value: Number((_i = parameters.temperature) != null ? _i : 0.7),
+              value: Number((_k = parameters.temperature) != null ? _k : 0.7),
               onChange: (e) => updateConfig((prev) => ({
                 ...prev,
                 parameters: {
@@ -8822,7 +9529,7 @@ function PanelApp() {
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
             "Top P (",
-            Number((_j = parameters.top_p) != null ? _j : 1),
+            Number((_l = parameters.top_p) != null ? _l : 1),
             ")"
           ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -8832,7 +9539,7 @@ function PanelApp() {
               min: "0",
               max: "1",
               step: "0.05",
-              value: Number((_k = parameters.top_p) != null ? _k : 1),
+              value: Number((_m = parameters.top_p) != null ? _m : 1),
               onChange: (e) => updateConfig((prev) => ({
                 ...prev,
                 parameters: {
@@ -8851,14 +9558,18 @@ function PanelApp() {
               type: "number",
               className: "input input-sm",
               placeholder: "4096",
-              value: parameters.max_tokens ? String(parameters.max_tokens) : "",
-              onChange: (e) => updateConfig((prev) => ({
-                ...prev,
-                parameters: {
-                  ...prev.parameters,
-                  max_tokens: e.target.value ? parseInt(e.target.value, 10) : void 0
-                }
-              }))
+              value: parameters.max_tokens !== void 0 && parameters.max_tokens !== null ? String(parameters.max_tokens) : "",
+              onChange: (e) => {
+                const raw = e.target.value;
+                const val = raw === "" ? void 0 : parseInt(raw, 10);
+                updateConfig((prev) => ({
+                  ...prev,
+                  parameters: {
+                    ...prev.parameters,
+                    max_tokens: val === void 0 || isNaN(val) ? void 0 : val
+                  }
+                }));
+              }
             }
           )
         ] })
@@ -8868,7 +9579,7 @@ function PanelApp() {
           "input",
           {
             type: "checkbox",
-            checked: Boolean((_l = parameters.stream) != null ? _l : true),
+            checked: Boolean((_n = parameters.stream) != null ? _n : true),
             onChange: (e) => updateConfig((prev) => ({
               ...prev,
               parameters: {
@@ -8887,25 +9598,21 @@ function PanelApp() {
 function renderPanel() {
   const container = document.getElementById("root");
   if (!container) return;
-  createRoot(container).render(
+  const root = createRoot(container);
+  root.render(
     /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(PanelApp, {}) })
   );
 }
 function main() {
-  window.addEventListener("error", (event) => {
-    var _a;
-    postError(event.message || String((_a = event.error) != null ? _a : "unknown panel error"));
-  });
-  window.addEventListener("unhandledrejection", (event) => {
-    const reason = event.reason;
-    postError(reason instanceof Error ? reason.message : String(reason != null ? reason : "unhandled rejection"));
-  });
-  const container = document.getElementById("root");
-  if (container) {
-    renderPanel();
-    return;
+  if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => {
+        renderPanel();
+      });
+    } else {
+      renderPanel();
+    }
   }
-  document.addEventListener("DOMContentLoaded", renderPanel);
 }
 main();
 

@@ -21,8 +21,8 @@ const ACTION_TIMEOUT_MS = 30000;
 let locale = 'en-US';
 let nodeType = 'llm:chat';
 let nodes: PluginIframeNodeSnapshot[] | undefined = undefined;
+let variables: Record<string, unknown> = {};
 let initConfig: Record<string, unknown> = {};
-
 const pendingActions = new Map<string, PendingAction>();
 
 // --- outbound -------------------------------------------------------------
@@ -137,6 +137,9 @@ export function initBridge(options: BridgeOptions): () => void {
         if (Array.isArray(initPayload.nodes)) {
           nodes = initPayload.nodes;
         }
+        if (initPayload.variables && typeof initPayload.variables === 'object') {
+          variables = initPayload.variables;
+        }
         if (initPayload.config && typeof initPayload.config === 'object') {
           initConfig = initPayload.config as Record<string, unknown>;
           lastReportedJson = JSON.stringify(initPayload.config);
@@ -236,4 +239,8 @@ export function getNodes(): PluginIframeNodeSnapshot[] | undefined {
 
 export function getInitConfig(): Record<string, unknown> {
   return initConfig;
+}
+
+export function getVariables(): Record<string, unknown> {
+  return variables;
 }
