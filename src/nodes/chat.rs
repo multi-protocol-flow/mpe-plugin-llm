@@ -125,6 +125,11 @@ pub async fn execute_chat(
     let total_ms = start_time.elapsed().as_millis() as u64;
 
     if !status.is_success() {
+        let headers_map: std::collections::HashMap<String, String> = res
+            .headers()
+            .iter()
+            .map(|(k, v)| (k.as_str().to_string(), v.to_str().unwrap_or("").to_string()))
+            .collect();
         let err_text = res.text().await.unwrap_or_else(|_| "Unknown error".into());
         let parsed_err: serde_json::Value =
             serde_json::from_str(&err_text).unwrap_or_else(|_| json!(err_text));
@@ -135,6 +140,7 @@ pub async fn execute_chat(
             "request": request_summary,
             "response": {
                 "status": status.as_u16(),
+                "headers": headers_map,
                 "body": parsed_err,
             },
             "timing": { "total_ms": total_ms }
