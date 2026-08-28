@@ -31,9 +31,10 @@ pub async fn execute_provider(ctx: &mut ExecuteContext, pool: &Arc<ConnectionPoo
 
     // Store in pool for subsequent nodes in this flow execution
     let key = format!("{exec_id}:{instance_id}");
+    pool.remove(&key);
     pool.get_or_insert(key, || provider.clone());
+    pool.remove(instance_id);
     pool.get_or_insert(instance_id.to_string(), || provider.clone());
-
     let latency_ms = start.elapsed().as_millis() as u64;
 
     ctx.log(

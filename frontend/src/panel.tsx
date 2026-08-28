@@ -1,7 +1,7 @@
 import { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
-import { initBridge, notifyConfig, postError, uiCall } from './bridge';
+import { initBridge, notifyConfig, uiCall } from './bridge';
 import { setLocale, t } from './i18n';
 import { VariablePicker } from './VariablePicker';
 import {
@@ -596,9 +596,12 @@ export function PanelApp() {
           className="input mono"
           placeholder="60000"
           value={
-            isInline
-              ? ((config.provider as Record<string, unknown>)?.timeout_ms ?? '')
-              : (config.timeout_ms ?? '')
+            (() => {
+              const val = isInline
+                ? (config.provider as Record<string, unknown>)?.timeout_ms
+                : config.timeout_ms;
+              return typeof val === 'number' || typeof val === 'string' ? val : '';
+            })()
           }
           onChange={(e) => {
             const raw = e.target.value;
@@ -669,7 +672,21 @@ export function PanelApp() {
               value={String(config.provider_uuid || '')}
               onChange={(e) => {
                 const val = e.target.value;
-                updateConfig((prev) => ({ ...prev, provider_uuid: val }));
+                const targetProv = availableProviderNodes.find((n) => n.uuid === val);
+                const targetProvCfg = (targetProv?.config || {}) as Record<string, unknown>;
+                updateConfig((prev) => {
+                  const updated: Record<string, unknown> = { ...prev, provider_uuid: val };
+                  if (val && targetProv) {
+                    const prevProv = (prev.provider as Record<string, unknown>) || {};
+                    updated.provider = {
+                      ...prevProv,
+                      ...(typeof targetProvCfg.base_url === 'string' ? { base_url: targetProvCfg.base_url } : {}),
+                      ...(typeof targetProvCfg.model === 'string' ? { model: targetProvCfg.model } : {}),
+                      ...(typeof targetProvCfg.timeout_ms === 'number' ? { timeout_ms: targetProvCfg.timeout_ms } : {}),
+                    };
+                  }
+                  return updated;
+                });
               }}
             >
               <option value="">
@@ -1110,45 +1127,49 @@ export function PanelApp() {
           <div className="grid-3">
             <div className="field">
               <label className="field-label">
-                <span>Temperature ({Number(parameters.temperature ?? 0.7)})</span>
+                <span>Temperature ({typeof parameters.temperature === 'number' ? Math.round(parameters.temperature * 100) / 100 : 0.7})</span>
               </label>
               <input
                 type="range"
                 min="0"
                 max="2"
                 step="0.05"
-                value={Number(parameters.temperature ?? 0.7)}
-                onChange={(e) =>
+                value={typeof parameters.temperature === 'number' ? Math.round(parameters.temperature * 100) / 100 : 0.7}
+                onChange={(e) => {
+                  const raw = parseFloat(e.target.value);
+                  const val = isNaN(raw) ? 0.7 : Math.round(raw * 100) / 100;
                   updateConfig((prev) => ({
                     ...prev,
                     parameters: {
                       ...(prev.parameters as Record<string, unknown>),
-                      temperature: parseFloat(e.target.value),
+                      temperature: val,
                     },
-                  }))
-                }
+                  }));
+                }}
               />
             </div>
 
             <div className="field">
               <label className="field-label">
-                <span>Top P ({Number(parameters.top_p ?? 1.0)})</span>
+                <span>Top P ({typeof parameters.top_p === 'number' ? Math.round(parameters.top_p * 100) / 100 : 1.0})</span>
               </label>
               <input
                 type="range"
                 min="0"
                 max="1"
                 step="0.05"
-                value={Number(parameters.top_p ?? 1.0)}
-                onChange={(e) =>
+                value={typeof parameters.top_p === 'number' ? Math.round(parameters.top_p * 100) / 100 : 1.0}
+                onChange={(e) => {
+                  const raw = parseFloat(e.target.value);
+                  const val = isNaN(raw) ? 1.0 : Math.round(raw * 100) / 100;
                   updateConfig((prev) => ({
                     ...prev,
                     parameters: {
                       ...(prev.parameters as Record<string, unknown>),
-                      top_p: parseFloat(e.target.value),
+                      top_p: val,
                     },
-                  }))
-                }
+                  }));
+                }}
               />
             </div>
 

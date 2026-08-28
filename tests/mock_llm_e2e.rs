@@ -624,3 +624,76 @@ async fn test_provider_node_reference_in_chat() {
 
     p.shutdown();
 }
+
+#[tokio::test]
+async fn test_provider_timeout_inheritance_and_enforcement() {
+    let server = MockServer::start().await;
+
+    let response_body = json!({
+        "choices": [{
+            "message": {
+                "role": "assistant",
+                "content": "Delayed response"
+            }
+        }]
+    });
+
+    // Mock server delays response by 2500ms
+    Mock::given(method("POST"))
+        .and(path("/chat/completions"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_delay(std::time::Duration::from_millis(2500))
+                .set_body_json(response_body),
+        )
+        .mount(&server)
+        .await;
+
+    let mut p = PluginProcess::spawn();
+
+    // 1. Register provider with timeout_ms = 1000 (1 second)
+    let prov_resp = p.request(
+        "execute",
+        json!({
+            "execution_id": "flow-exec-timeout",
+            "node_instance_id": "prov-timeout-node",
+            "config": {
+                "type": "llm:provider",
+                "base_url": server.uri(),
+                "model": "gpt-4o",
+                "timeout_ms": 1000
+            }
+        }),
+    );
+    let prov_res = prov_resp.get("result").expect("prov result present");
+    assert_eq!(prov_res.get("success").and_then(|s| s.as_bool()), Some(true));
+
+    // 2. Chat inherits timeout_ms = 1000 -> Should timeout and fail!
+    let chat_resp = p.request(
+        "execute",
+        json!({
+            "execution_id": "flow-exec-timeout",
+            "node_instance_id": "chat-timeout-node",
+            "config": {
+                "type": "llm:chat",
+                "provider_uuid": "prov-timeout-node",
+                "messages": [{ "role": "user", "content": "Hi" }],
+                "parameters": { "stream": false }
+            }
+        }),
+    );
+    let chat_res = chat_resp.get("result").expect("chat result present");
+    assert_eq!(
+        chat_res.get("success").and_then(|s| s.as_bool()),
+        Some(false),
+        "Chat should fail due to inherited timeout"
+    );
+    let output = chat_res.get("output_data").expect("output_data present");
+    let error_field = output.get("error").and_then(|e| e.as_str()).unwrap();
+    assert!(
+        error_field.contains("HTTP request failed") || error_field.contains("timeout") || error_field.contains("timed out"),
+        "Error field should indicate request failure: {error_field}"
+    );
+
+    p.shutdown();
+}

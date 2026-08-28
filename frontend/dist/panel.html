@@ -8579,7 +8579,7 @@ const initialDefaultConfig = {
   return_documents: true
 };
 function PanelApp() {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
   const [state, setState] = reactExports.useState({
     nodeType: "llm:chat",
     config: initialDefaultConfig,
@@ -8765,66 +8765,40 @@ function PanelApp() {
   if (!state.ready) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "panel", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "card", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "hint", style: { textAlign: "center", padding: "16px" }, children: t("正在加载配置面板...", "Loading configuration panel...") }) }) });
   }
-  const renderProviderFormFields = (isInline) => {
-    var _a2, _b2, _c2;
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+  const renderProviderFormFields = (isInline) => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: t("服务商预设", "Provider Preset") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "select",
+        {
+          className: "select",
+          onChange: (e) => handleProviderPreset(e.target.value),
+          defaultValue: "",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", disabled: true, children: t("-- 选择快捷预设 --", "-- Select Provider Preset --") }),
+            Object.entries(PROVIDER_PRESETS).map(([key, item]) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: key, children: item.label }, key))
+          ]
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-2", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: t("服务商预设", "Provider Preset") }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "select",
-          {
-            className: "select",
-            onChange: (e) => handleProviderPreset(e.target.value),
-            defaultValue: "",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", disabled: true, children: t("-- 选择快捷预设 --", "-- Select Provider Preset --") }),
-              Object.entries(PROVIDER_PRESETS).map(([key, item]) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: key, children: item.label }, key))
-            ]
-          }
-        )
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-2", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(IconGlobe, { size: 13, className: "text-muted" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 基础地址 (Base URL)", "Base URL") })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(IconGlobe, { size: 13, className: "text-muted" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 基础地址 (Base URL)", "Base URL") })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              VariablePicker,
-              {
-                variables: state.variables,
-                variant: "icon",
-                inputRef: baseUrlInputRef,
-                currentValue: provider.base_url,
-                onValueChange: (val) => {
-                  if (isInline) {
-                    updateConfig((prev) => ({
-                      ...prev,
-                      provider: { ...prev.provider, base_url: val }
-                    }));
-                  } else {
-                    updateConfig((prev) => ({ ...prev, base_url: val }));
-                  }
-                },
-                onSelect: () => {
-                }
-              }
-            )
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
+            VariablePicker,
             {
-              ref: baseUrlInputRef,
-              type: "text",
-              className: "input mono",
-              placeholder: "https://api.openai.com/v1",
-              value: provider.base_url,
-              onChange: (e) => {
-                const val = e.target.value;
+              variables: state.variables,
+              variant: "icon",
+              inputRef: baseUrlInputRef,
+              currentValue: provider.base_url,
+              onValueChange: (val) => {
                 if (isInline) {
                   updateConfig((prev) => ({
                     ...prev,
@@ -8833,48 +8807,48 @@ function PanelApp() {
                 } else {
                   updateConfig((prev) => ({ ...prev, base_url: val }));
                 }
+              },
+              onSelect: () => {
               }
             }
           )
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", style: { margin: 0 }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(IconKey, { size: 13, className: "text-muted" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 密钥 (API Key)", "API Key") })
-            ] }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              VariablePicker,
-              {
-                variables: state.variables,
-                variant: "icon",
-                inputRef: apiKeyInputRef,
-                currentValue: provider.api_key || "",
-                onValueChange: (val) => {
-                  if (isInline) {
-                    updateConfig((prev) => ({
-                      ...prev,
-                      provider: { ...prev.provider, api_key: val }
-                    }));
-                  } else {
-                    updateConfig((prev) => ({ ...prev, api_key: val }));
-                  }
-                },
-                onSelect: () => {
-                }
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            ref: baseUrlInputRef,
+            type: "text",
+            className: "input mono",
+            placeholder: "https://api.openai.com/v1",
+            value: provider.base_url,
+            onChange: (e) => {
+              const val = e.target.value;
+              if (isInline) {
+                updateConfig((prev) => ({
+                  ...prev,
+                  provider: { ...prev.provider, base_url: val }
+                }));
+              } else {
+                updateConfig((prev) => ({ ...prev, base_url: val }));
               }
-            )
-          ] }),
+            }
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", style: { margin: 0 }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(IconKey, { size: 13, className: "text-muted" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("API 密钥 (API Key)", "API Key") })
+          ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
+            VariablePicker,
             {
-              ref: apiKeyInputRef,
-              type: "password",
-              className: "input mono",
-              placeholder: "sk-...",
-              value: provider.api_key || "",
-              onChange: (e) => {
-                const val = e.target.value;
+              variables: state.variables,
+              variant: "icon",
+              inputRef: apiKeyInputRef,
+              currentValue: provider.api_key || "",
+              onValueChange: (val) => {
                 if (isInline) {
                   updateConfig((prev) => ({
                     ...prev,
@@ -8883,143 +8857,170 @@ function PanelApp() {
                 } else {
                   updateConfig((prev) => ({ ...prev, api_key: val }));
                 }
+              },
+              onSelect: () => {
               }
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            ref: apiKeyInputRef,
+            type: "password",
+            className: "input mono",
+            placeholder: "sk-...",
+            value: provider.api_key || "",
+            onChange: (e) => {
+              const val = e.target.value;
+              if (isInline) {
+                updateConfig((prev) => ({
+                  ...prev,
+                  provider: { ...prev.provider, api_key: val }
+                }));
+              } else {
+                updateConfig((prev) => ({ ...prev, api_key: val }));
+              }
+            }
+          }
+        )
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", style: { marginBottom: "2px" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(IconSparkles, { size: 13, className: "text-muted" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("模型名称 (Model)", "Model Name") })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: "6px" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            VariablePicker,
+            {
+              variables: state.variables,
+              variant: "icon",
+              inputRef: modelInputRef,
+              currentValue: provider.model,
+              onValueChange: (val) => {
+                if (isInline) {
+                  updateConfig((prev) => ({
+                    ...prev,
+                    provider: { ...prev.provider, model: val }
+                  }));
+                } else {
+                  updateConfig((prev) => ({ ...prev, model: val }));
+                }
+              },
+              onSelect: () => {
+              }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              className: "btn btn-sm",
+              onClick: handleFetchModels,
+              disabled: loadingModels,
+              children: loadingModels ? t("拉取中...", "Fetching...") : t("获取模型列表", "Fetch Models")
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              className: "btn btn-sm btn-primary",
+              onClick: handleTestConnection,
+              disabled: testStatus.loading,
+              children: testStatus.loading ? t("测试中...", "Testing...") : t("测试连接", "Test Connection")
             }
           )
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row-between", style: { marginBottom: "2px" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "field-label", style: { margin: 0 }, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(IconSparkles, { size: 13, className: "text-muted" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("模型名称 (Model)", "Model Name") })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "req", children: "*" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: "6px" }, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              VariablePicker,
-              {
-                variables: state.variables,
-                variant: "icon",
-                inputRef: modelInputRef,
-                currentValue: provider.model,
-                onValueChange: (val) => {
-                  if (isInline) {
-                    updateConfig((prev) => ({
-                      ...prev,
-                      provider: { ...prev.provider, model: val }
-                    }));
-                  } else {
-                    updateConfig((prev) => ({ ...prev, model: val }));
-                  }
-                },
-                onSelect: () => {
-                }
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                type: "button",
-                className: "btn btn-sm",
-                onClick: handleFetchModels,
-                disabled: loadingModels,
-                children: loadingModels ? t("拉取中...", "Fetching...") : t("获取模型列表", "Fetch Models")
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                type: "button",
-                className: "btn btn-sm btn-primary",
-                onClick: handleTestConnection,
-                disabled: testStatus.loading,
-                children: testStatus.loading ? t("测试中...", "Testing...") : t("测试连接", "Test Connection")
-              }
-            )
-          ] })
-        ] }),
-        modelsList.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "select",
-          {
-            className: "select mono",
-            value: provider.model,
-            onChange: (e) => {
-              const val = e.target.value;
-              if (isInline) {
-                updateConfig((prev) => ({
-                  ...prev,
-                  provider: { ...prev.provider, model: val }
-                }));
-              } else {
-                updateConfig((prev) => ({ ...prev, model: val }));
-              }
-            },
-            children: modelsList.map((m2) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: m2, children: m2 }, m2))
-          }
-        ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            ref: modelInputRef,
-            type: "text",
-            className: "input mono",
-            placeholder: "gpt-4o, deepseek-chat, qwen-plus...",
-            value: provider.model,
-            onChange: (e) => {
-              const val = e.target.value;
-              if (isInline) {
-                updateConfig((prev) => ({
-                  ...prev,
-                  provider: { ...prev.provider, model: val }
-                }));
-              } else {
-                updateConfig((prev) => ({ ...prev, model: val }));
-              }
+      modelsList.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "select",
+        {
+          className: "select mono",
+          value: provider.model,
+          onChange: (e) => {
+            const val = e.target.value;
+            if (isInline) {
+              updateConfig((prev) => ({
+                ...prev,
+                provider: { ...prev.provider, model: val }
+              }));
+            } else {
+              updateConfig((prev) => ({ ...prev, model: val }));
+            }
+          },
+          children: modelsList.map((m2) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: m2, children: m2 }, m2))
+        }
+      ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          ref: modelInputRef,
+          type: "text",
+          className: "input mono",
+          placeholder: "gpt-4o, deepseek-chat, qwen-plus...",
+          value: provider.model,
+          onChange: (e) => {
+            const val = e.target.value;
+            if (isInline) {
+              updateConfig((prev) => ({
+                ...prev,
+                provider: { ...prev.provider, model: val }
+              }));
+            } else {
+              updateConfig((prev) => ({ ...prev, model: val }));
             }
           }
-        )
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(IconClock, { size: 13, className: "text-muted" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("请求超时 (Timeout ms)", "Timeout (ms)") })
-        ] }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            type: "number",
-            className: "input mono",
-            placeholder: "60000",
-            value: isInline ? (_b2 = (_a2 = config.provider) == null ? void 0 : _a2.timeout_ms) != null ? _b2 : "" : (_c2 = config.timeout_ms) != null ? _c2 : "",
-            onChange: (e) => {
-              const raw = e.target.value;
-              const val = raw === "" ? void 0 : parseInt(raw, 10);
-              if (isInline) {
-                updateConfig((prev) => ({
-                  ...prev,
-                  provider: {
-                    ...prev.provider,
-                    timeout_ms: val === void 0 || isNaN(val) ? void 0 : val
-                  }
-                }));
-              } else {
-                updateConfig((prev) => ({
-                  ...prev,
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "row", style: { gap: "4px" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(IconClock, { size: 13, className: "text-muted" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t("请求超时 (Timeout ms)", "Timeout (ms)") })
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "number",
+          className: "input mono",
+          placeholder: "60000",
+          value: (() => {
+            var _a2;
+            const val = isInline ? (_a2 = config.provider) == null ? void 0 : _a2.timeout_ms : config.timeout_ms;
+            return typeof val === "number" || typeof val === "string" ? val : "";
+          })(),
+          onChange: (e) => {
+            const raw = e.target.value;
+            const val = raw === "" ? void 0 : parseInt(raw, 10);
+            if (isInline) {
+              updateConfig((prev) => ({
+                ...prev,
+                provider: {
+                  ...prev.provider,
                   timeout_ms: val === void 0 || isNaN(val) ? void 0 : val
-                }));
-              }
+                }
+              }));
+            } else {
+              updateConfig((prev) => ({
+                ...prev,
+                timeout_ms: val === void 0 || isNaN(val) ? void 0 : val
+              }));
             }
           }
-        )
-      ] }),
-      testStatus.message && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `alert ${testStatus.ok ? "alert-green" : "alert-red"}`, children: [
-        testStatus.ok ? /* @__PURE__ */ jsxRuntimeExports.jsx(IconCheckCircle, { size: 14 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(IconXCircle, { size: 14 }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: testStatus.message })
-      ] })
-    ] });
-  };
+        }
+      )
+    ] }),
+    testStatus.message && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `alert ${testStatus.ok ? "alert-green" : "alert-red"}`, children: [
+      testStatus.ok ? /* @__PURE__ */ jsxRuntimeExports.jsx(IconCheckCircle, { size: 14 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(IconXCircle, { size: 14 }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: testStatus.message })
+    ] })
+  ] });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel", children: [
     isProviderNode && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-title", children: [
@@ -9051,7 +9052,21 @@ function PanelApp() {
             value: String(config.provider_uuid || ""),
             onChange: (e) => {
               const val = e.target.value;
-              updateConfig((prev) => ({ ...prev, provider_uuid: val }));
+              const targetProv = availableProviderNodes.find((n2) => n2.uuid === val);
+              const targetProvCfg = (targetProv == null ? void 0 : targetProv.config) || {};
+              updateConfig((prev) => {
+                const updated = { ...prev, provider_uuid: val };
+                if (val && targetProv) {
+                  const prevProv = prev.provider || {};
+                  updated.provider = {
+                    ...prevProv,
+                    ...typeof targetProvCfg.base_url === "string" ? { base_url: targetProvCfg.base_url } : {},
+                    ...typeof targetProvCfg.model === "string" ? { model: targetProvCfg.model } : {},
+                    ...typeof targetProvCfg.timeout_ms === "number" ? { timeout_ms: targetProvCfg.timeout_ms } : {}
+                  };
+                }
+                return updated;
+              });
             },
             children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t("-- 自定义 / 节点内置配置 (Inline Provider Config) --", "-- Inline / Custom Provider Config --") }),
@@ -9505,7 +9520,7 @@ function PanelApp() {
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
             "Temperature (",
-            Number((_j = parameters.temperature) != null ? _j : 0.7),
+            typeof parameters.temperature === "number" ? Math.round(parameters.temperature * 100) / 100 : 0.7,
             ")"
           ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -9515,21 +9530,25 @@ function PanelApp() {
               min: "0",
               max: "2",
               step: "0.05",
-              value: Number((_k = parameters.temperature) != null ? _k : 0.7),
-              onChange: (e) => updateConfig((prev) => ({
-                ...prev,
-                parameters: {
-                  ...prev.parameters,
-                  temperature: parseFloat(e.target.value)
-                }
-              }))
+              value: typeof parameters.temperature === "number" ? Math.round(parameters.temperature * 100) / 100 : 0.7,
+              onChange: (e) => {
+                const raw = parseFloat(e.target.value);
+                const val = isNaN(raw) ? 0.7 : Math.round(raw * 100) / 100;
+                updateConfig((prev) => ({
+                  ...prev,
+                  parameters: {
+                    ...prev.parameters,
+                    temperature: val
+                  }
+                }));
+              }
             }
           )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "field", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "field-label", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
             "Top P (",
-            Number((_l = parameters.top_p) != null ? _l : 1),
+            typeof parameters.top_p === "number" ? Math.round(parameters.top_p * 100) / 100 : 1,
             ")"
           ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -9539,14 +9558,18 @@ function PanelApp() {
               min: "0",
               max: "1",
               step: "0.05",
-              value: Number((_m = parameters.top_p) != null ? _m : 1),
-              onChange: (e) => updateConfig((prev) => ({
-                ...prev,
-                parameters: {
-                  ...prev.parameters,
-                  top_p: parseFloat(e.target.value)
-                }
-              }))
+              value: typeof parameters.top_p === "number" ? Math.round(parameters.top_p * 100) / 100 : 1,
+              onChange: (e) => {
+                const raw = parseFloat(e.target.value);
+                const val = isNaN(raw) ? 1 : Math.round(raw * 100) / 100;
+                updateConfig((prev) => ({
+                  ...prev,
+                  parameters: {
+                    ...prev.parameters,
+                    top_p: val
+                  }
+                }));
+              }
             }
           )
         ] }),
@@ -9579,7 +9602,7 @@ function PanelApp() {
           "input",
           {
             type: "checkbox",
-            checked: Boolean((_n = parameters.stream) != null ? _n : true),
+            checked: Boolean((_j = parameters.stream) != null ? _j : true),
             onChange: (e) => updateConfig((prev) => ({
               ...prev,
               parameters: {
