@@ -95,6 +95,8 @@ export interface PluginIframeNodeSnapshot {
 export interface PluginIframeInitPayload {
   nodeType?: string;
   locale?: string;
+  /** Host-resolved theme; absent on older hosts → fall back to prefers-color-scheme. */
+  theme?: 'light' | 'dark';
   config?: Record<string, unknown>;
   variables?: Record<string, unknown>;
   host_api?: Record<string, unknown>;

@@ -12,6 +12,9 @@
  * ========================================================================== */
 
 :root {
+  /* 明暗模式由宿主下发的 data-theme 决定（docs/plugin-frontend-theme.md）；
+     color-scheme 让 UA 原生控件（下拉列表/checkbox/滚动条）跟随 */
+  color-scheme: light;
   --bg: #ffffff;
   --bg-card: #ffffff;
   --bg-subtle: #f8fafc;
@@ -38,8 +41,12 @@
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+/* 兜底：宿主未下发 theme（旧宿主 / 浏览器独立调试）→ 跟随系统。
+   `data-theme` 一旦存在本块即不匹配，由下方权威块接管。
+   深色变量与权威块必须逐条一致 —— CSS 无法跨规则共享变量块。 */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
+    color-scheme: dark;
     --bg: #0f172a;
     --bg-card: #1e293b;
     --bg-subtle: #1e293b;
@@ -62,6 +69,32 @@
     --info: #60a5fa;
     --info-soft: #172554;
   }
+}
+
+/* 权威：宿主下发的 resolved 主题（与上方兜底块逐条一致） */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f172a;
+  --bg-card: #1e293b;
+  --bg-subtle: #1e293b;
+  --bg-muted: #334155;
+  --bg-input: #1e293b;
+  --border: #334155;
+  --fg: #f8fafc;
+  --fg-muted: #94a3b8;
+  --fg-soft: #64748b;
+  --accent: #10b981;
+  --accent-soft: #064e3b;
+  --accent-strong: #34d399;
+  --accent-border: #047857;
+  --danger: #f87171;
+  --danger-soft: #450a0a;
+  --ok: #34d399;
+  --ok-soft: #064e3b;
+  --warn: #fbbf24;
+  --warn-soft: #451a03;
+  --info: #60a5fa;
+  --info-soft: #172554;
 }
 
 * {
@@ -266,6 +299,34 @@ input[type="range"] {
 
 .select {
   cursor: pointer;
+}
+
+/*
+ * Native `<select>` chrome (arrow button, inner shading) is UA-drawn and does
+ * not follow our palette — on a dark background the default arrow ends up
+ * invisible or the control keeps a light native look. Drop the native
+ * appearance and draw the caret ourselves with two gradients, so its color
+ * comes from the theme variable and flips with light/dark.
+ */
+.select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 28px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--fg-muted) 50%),
+    linear-gradient(135deg, var(--fg-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 2px),
+    calc(100% - 11px) calc(50% - 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+/* 原生下拉的选项列表由 UA 绘制：显式给出配色。否则深色模式下 UA 按浅色画
+   白底、文字却继承近白色的 --fg → 「白底白字」。 */
+option {
+  background: var(--bg-input);
+  color: var(--fg);
 }
 
 /* --- buttons ------------------------------------------------------------- */
@@ -7945,6 +8006,14 @@ function t(zh2, en) {
 const ACTION_TIMEOUT_MS = 3e4;
 let nodeType = "llm:chat";
 const pendingActions = /* @__PURE__ */ new Map();
+function applyTheme(theme) {
+  const root = document.documentElement;
+  root.dataset.theme = theme;
+  root.style.colorScheme = theme;
+}
+function isTheme(value) {
+  return value === "light" || value === "dark";
+}
 function post(type, payload = {}) {
   try {
     if (typeof window !== "undefined" && window.parent && window.parent !== window) {
@@ -8005,6 +8074,9 @@ function initBridge(options) {
           initPayload.locale;
           setLocale(initPayload.locale);
         }
+        if (isTheme(initPayload.theme)) {
+          applyTheme(initPayload.theme);
+        }
         if (typeof initPayload.nodeType === "string") {
           nodeType = initPayload.nodeType;
         }
@@ -8043,6 +8115,12 @@ function initBridge(options) {
           pending.reject(new Error(payload.error));
         } else {
           pending.resolve(payload.result);
+        }
+        break;
+      }
+      case "themeChanged": {
+        if (isTheme(payload.theme)) {
+          applyTheme(payload.theme);
         }
         break;
       }
