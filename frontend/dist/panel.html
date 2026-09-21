@@ -271,6 +271,18 @@ body {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+/*
+ * WebKit 的 <input>/<select> 内联编辑器把文本垂直居中在内容盒里；当内容盒高度
+ * 恰好等于行盒高度（height: auto + line-height: normal）时，绘制在 descent 之下
+ * 的 `_` 会被内容盒裁掉 —— 变量名如 {{base_url_var}} 的下划线因此发虚、看起来被
+ * 切断（WebKitGTK 实测 14px 时整条消失）。给控件一个最小高度，让内容盒高于行盒，
+ * 下划线就有余量完整渲染。
+ */
+.input,
+.select {
+  min-height: 34px;
+}
+
 input[type="range"] {
   width: 100%;
   max-width: 100%;
@@ -787,6 +799,7 @@ option {
   padding: 8px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
+  flex-shrink: 0;
 }
 
 .var-picker-search-box {
@@ -826,6 +839,8 @@ option {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  /* 下拉被 maxHeight 压缩时，列表需可收缩并内部滚动（flex 项默认 min-height:auto 不会收缩） */
+  min-height: 0;
 }
 
 .var-picker-section {
@@ -985,6 +1000,7 @@ option {
   background: var(--bg);
   font-size: 10px;
   color: var(--fg-muted);
+  flex-shrink: 0;
 }
 
 </style>
@@ -8327,30 +8343,47 @@ function insertVariableIntoInput(el2, currentValue, varExpression, onChange) {
   });
   return next;
 }
-function calculateDropdownPosition(buttonEl) {
+const DROPDOWN_GAP = 4;
+const VIEWPORT_MARGIN = 8;
+const DROPDOWN_MAX_BODY_HEIGHT = 250;
+const DROPDOWN_MIN_HEIGHT = 120;
+function measureDropdownHeight(dropdownEl) {
+  var _a, _b;
+  if (!dropdownEl) return 0;
+  const header = dropdownEl.querySelector(".var-picker-header");
+  const body = dropdownEl.querySelector(".var-picker-body");
+  const footer = dropdownEl.querySelector(".var-picker-footer");
+  const bodyHeight = body ? Math.min(body.scrollHeight, DROPDOWN_MAX_BODY_HEIGHT) : 0;
+  return ((_a = header == null ? void 0 : header.offsetHeight) != null ? _a : 0) + bodyHeight + ((_b = footer == null ? void 0 : footer.offsetHeight) != null ? _b : 0) + 2;
+}
+function calculateDropdownPosition(buttonEl, dropdownEl) {
   if (!buttonEl) return { position: "fixed", top: "0px", left: "0px", zIndex: 9999 };
   const btnRect = buttonEl.getBoundingClientRect();
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 400;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 600;
-  const dropdownWidth = Math.min(290, viewportWidth - 20);
+  const dropdownWidth = Math.min(290, viewportWidth - VIEWPORT_MARGIN * 2);
   let left = btnRect.right - dropdownWidth;
-  if (left < 10) {
-    left = Math.max(10, btnRect.left);
+  if (left < VIEWPORT_MARGIN) {
+    left = Math.max(VIEWPORT_MARGIN, btnRect.left);
   }
-  if (left + dropdownWidth > viewportWidth - 10) {
-    left = Math.max(10, viewportWidth - dropdownWidth - 10);
+  if (left + dropdownWidth > viewportWidth - VIEWPORT_MARGIN) {
+    left = Math.max(VIEWPORT_MARGIN, viewportWidth - dropdownWidth - VIEWPORT_MARGIN);
   }
-  let top = btnRect.bottom + 4;
-  const estimatedHeight = 240;
-  if (top + estimatedHeight > viewportHeight && btnRect.top > estimatedHeight + 10) {
-    top = Math.max(10, btnRect.top - estimatedHeight - 4);
-  }
+  const naturalHeight = measureDropdownHeight(dropdownEl) || DROPDOWN_MIN_HEIGHT;
+  const spaceBelow = viewportHeight - btnRect.bottom - DROPDOWN_GAP - VIEWPORT_MARGIN;
+  const spaceAbove = btnRect.top - DROPDOWN_GAP - VIEWPORT_MARGIN;
+  const openAbove = naturalHeight > spaceBelow && spaceAbove > spaceBelow;
+  const available = Math.max(DROPDOWN_MIN_HEIGHT, openAbove ? spaceAbove : spaceBelow);
+  const maxHeight = Math.min(naturalHeight, available);
+  let top = openAbove ? btnRect.top - DROPDOWN_GAP - maxHeight : btnRect.bottom + DROPDOWN_GAP;
+  top = Math.max(VIEWPORT_MARGIN, Math.min(top, viewportHeight - VIEWPORT_MARGIN - maxHeight));
   return {
     position: "fixed",
     top: `${Math.round(top)}px`,
     left: `${Math.round(left)}px`,
     width: `${dropdownWidth}px`,
-    maxWidth: `calc(100vw - 20px)`,
+    maxWidth: `calc(100vw - ${VIEWPORT_MARGIN * 2}px)`,
+    maxHeight: `${Math.round(maxHeight)}px`,
     zIndex: 9999
   };
 }
@@ -8374,12 +8407,8 @@ function VariablePicker({
   const searchInputRef = reactExports.useRef(null);
   const updatePosition = reactExports.useCallback(() => {
     if (!buttonRef.current) return;
-    setDropdownStyle(calculateDropdownPosition(buttonRef.current));
+    setDropdownStyle(calculateDropdownPosition(buttonRef.current, dropdownRef.current));
   }, []);
-  reactExports.useLayoutEffect(() => {
-    if (!isOpen) return;
-    updatePosition();
-  }, [isOpen, updatePosition]);
   reactExports.useEffect(() => {
     if (!isOpen) return;
     window.addEventListener("resize", updatePosition);
@@ -8417,6 +8446,10 @@ function VariablePicker({
       return name.toLowerCase().includes(q2) || String(val != null ? val : "").toLowerCase().includes(q2);
     });
   }, [variables, search]);
+  reactExports.useLayoutEffect(() => {
+    if (!isOpen) return;
+    updatePosition();
+  }, [isOpen, updatePosition, search, filteredVariables.length]);
   const handleSelect = (varExpr) => {
     if (inputRef && inputRef.current !== void 0) {
       insertVariableIntoInput(inputRef.current, currentValue, varExpr, onValueChange);
@@ -8427,7 +8460,7 @@ function VariablePicker({
   const handleToggle = (e) => {
     e.stopPropagation();
     if (!isOpen) {
-      setDropdownStyle(calculateDropdownPosition(buttonRef.current));
+      setDropdownStyle(calculateDropdownPosition(buttonRef.current, null));
       setIsOpen(true);
     } else {
       setIsOpen(false);
@@ -8621,6 +8654,26 @@ const SCHEMA_TEMPLATES = {
     }
   }
 };
+const VARIABLE_PATTERN_SOURCE = "\\{\\{\\s*([^{}]+?)\\s*\\}\\}";
+function resolveVariableExpressions(value, variables) {
+  if (!value || value.indexOf("{{") === -1) return value;
+  return value.replace(new RegExp(VARIABLE_PATTERN_SOURCE, "g"), (match, rawName) => {
+    const name = rawName.trim();
+    if (!Object.prototype.hasOwnProperty.call(variables, name)) return match;
+    const resolved = variables[name];
+    if (resolved === void 0 || resolved === null) return match;
+    return typeof resolved === "object" ? JSON.stringify(resolved) : String(resolved);
+  });
+}
+function unresolvedVariables(value) {
+  const names = [];
+  const re2 = new RegExp(VARIABLE_PATTERN_SOURCE, "g");
+  let match;
+  while ((match = re2.exec(value)) !== null) {
+    names.push(match[1].trim());
+  }
+  return names;
+}
 const initialDefaultConfig = {
   base_url: "https://api.openai.com/v1",
   api_key: "",
@@ -8776,10 +8829,37 @@ function PanelApp() {
       });
     }
   };
+  const resolveProviderForUiCall = () => {
+    const resolved = {
+      ...provider,
+      base_url: resolveVariableExpressions(provider.base_url, state.variables),
+      api_key: provider.api_key ? resolveVariableExpressions(provider.api_key, state.variables) : provider.api_key,
+      model: resolveVariableExpressions(provider.model, state.variables)
+    };
+    return {
+      resolved,
+      unresolved: [
+        ...unresolvedVariables(resolved.base_url),
+        ...unresolvedVariables(resolved.model),
+        ...unresolvedVariables(resolved.api_key || "")
+      ]
+    };
+  };
   const handleTestConnection = async () => {
+    const { resolved, unresolved } = resolveProviderForUiCall();
+    if (unresolved.length > 0) {
+      setTestStatus({
+        ok: false,
+        message: t(
+          `无法测试连接：变量 ${unresolved.join("、")} 当前没有值，请先运行流程或改为直接填写。`,
+          `Cannot test connection: no value for ${unresolved.join(", ")}. Run the flow first or enter a literal value.`
+        )
+      });
+      return;
+    }
     setTestStatus({ loading: true });
     try {
-      const res = await uiCall("llm.test_connection", { provider });
+      const res = await uiCall("llm.test_connection", { provider: resolved });
       setTestStatus({
         ok: true,
         message: t(
@@ -8795,9 +8875,19 @@ function PanelApp() {
     }
   };
   const handleFetchModels = async () => {
+    const { resolved, unresolved } = resolveProviderForUiCall();
+    if (unresolved.length > 0) {
+      alert(
+        t(
+          `无法获取模型列表：变量 ${unresolved.join("、")} 当前没有值，请先运行流程或改为直接填写。`,
+          `Cannot fetch models: no value for ${unresolved.join(", ")}. Run the flow first or enter a literal value.`
+        )
+      );
+      return;
+    }
     setLoadingModels(true);
     try {
-      const res = await uiCall("llm.list_models", { provider });
+      const res = await uiCall("llm.list_models", { provider: resolved });
       if (res && Array.isArray(res.models)) {
         setModelsList(res.models);
       }
@@ -9320,8 +9410,7 @@ function PanelApp() {
                 VariablePicker,
                 {
                   variables: state.variables,
-                  variant: "badge",
-                  label: t("插入变量", "Insert Variable"),
+                  variant: "icon",
                   inputRef: { current: messageRefs.current[index] || null },
                   currentValue: msg.content,
                   onValueChange: (val) => updateMessage(index, "content", val),
@@ -9420,6 +9509,7 @@ function PanelApp() {
             VariablePicker,
             {
               variables: state.variables,
+              variant: "icon",
               inputRef: embeddingsInputRef,
               currentValue: embeddingsInputText,
               onValueChange: (val) => {
@@ -9480,6 +9570,7 @@ function PanelApp() {
             VariablePicker,
             {
               variables: state.variables,
+              variant: "icon",
               inputRef: rerankQueryRef,
               currentValue: String(config.query || ""),
               onValueChange: (val) => updateConfig((prev) => ({ ...prev, query: val })),
@@ -9510,6 +9601,7 @@ function PanelApp() {
             VariablePicker,
             {
               variables: state.variables,
+              variant: "icon",
               inputRef: rerankDocsRef,
               currentValue: documentsText,
               onValueChange: (val) => {

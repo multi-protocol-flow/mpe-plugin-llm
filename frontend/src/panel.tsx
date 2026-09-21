@@ -115,6 +115,42 @@ type PanelState = {
   ready: boolean;
 };
 
+/** Matches a `{{name}}` placeholder; built fresh per use to avoid shared `lastIndex`. */
+const VARIABLE_PATTERN_SOURCE = '\\{\\{\\s*([^{}]+?)\\s*\\}\\}';
+
+/**
+ * Resolve `{{variable}}` placeholders against the host-provided variable snapshot.
+ *
+ * Execution-time interpolation is done by the host, but design-time `uiCall`s
+ * (test connection / list models) are relayed verbatim — an unresolved
+ * `{{base_url}}` reaches the plugin as a literal string and the request fails.
+ * Unknown names are left untouched so the caller can detect them.
+ */
+function resolveVariableExpressions(
+  value: string,
+  variables: Record<string, unknown>,
+): string {
+  if (!value || value.indexOf('{{') === -1) return value;
+  return value.replace(new RegExp(VARIABLE_PATTERN_SOURCE, 'g'), (match, rawName: string) => {
+    const name = rawName.trim();
+    if (!Object.prototype.hasOwnProperty.call(variables, name)) return match;
+    const resolved = variables[name];
+    if (resolved === undefined || resolved === null) return match;
+    return typeof resolved === 'object' ? JSON.stringify(resolved) : String(resolved);
+  });
+}
+
+/** Names of the placeholders still unresolved after a resolution pass. */
+function unresolvedVariables(value: string): string[] {
+  const names: string[] = [];
+  const re = new RegExp(VARIABLE_PATTERN_SOURCE, 'g');
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(value)) !== null) {
+    names.push(match[1].trim());
+  }
+  return names;
+}
+
 const initialDefaultConfig: Record<string, unknown> = {
   base_url: 'https://api.openai.com/v1',
   api_key: '',
@@ -291,10 +327,46 @@ export function PanelApp() {
     }
   };
 
+  /**
+   * Provider config with `{{variable}}` placeholders resolved, for design-time
+   * `uiCall`s. The host interpolates variables only while executing a flow, so
+   * without this an `{{base_url}}` would be sent to the plugin verbatim.
+   * Also reports placeholders that have no value in the panel yet.
+   */
+  const resolveProviderForUiCall = (): { resolved: LlmProviderConfig; unresolved: string[] } => {
+    const resolved: LlmProviderConfig = {
+      ...provider,
+      base_url: resolveVariableExpressions(provider.base_url, state.variables),
+      api_key: provider.api_key
+        ? resolveVariableExpressions(provider.api_key, state.variables)
+        : provider.api_key,
+      model: resolveVariableExpressions(provider.model, state.variables),
+    };
+    return {
+      resolved,
+      unresolved: [
+        ...unresolvedVariables(resolved.base_url),
+        ...unresolvedVariables(resolved.model),
+        ...unresolvedVariables(resolved.api_key || ''),
+      ],
+    };
+  };
+
   const handleTestConnection = async () => {
+    const { resolved, unresolved } = resolveProviderForUiCall();
+    if (unresolved.length > 0) {
+      setTestStatus({
+        ok: false,
+        message: t(
+          `无法测试连接：变量 ${unresolved.join('、')} 当前没有值，请先运行流程或改为直接填写。`,
+          `Cannot test connection: no value for ${unresolved.join(', ')}. Run the flow first or enter a literal value.`,
+        ),
+      });
+      return;
+    }
     setTestStatus({ loading: true });
     try {
-      const res = (await uiCall('llm.test_connection', { provider })) as {
+      const res = (await uiCall('llm.test_connection', { provider: resolved })) as {
         ok: boolean;
         latency_ms: number;
         models_count: number;
@@ -315,9 +387,19 @@ export function PanelApp() {
   };
 
   const handleFetchModels = async () => {
+    const { resolved, unresolved } = resolveProviderForUiCall();
+    if (unresolved.length > 0) {
+      alert(
+        t(
+          `无法获取模型列表：变量 ${unresolved.join('、')} 当前没有值，请先运行流程或改为直接填写。`,
+          `Cannot fetch models: no value for ${unresolved.join(', ')}. Run the flow first or enter a literal value.`,
+        ),
+      );
+      return;
+    }
     setLoadingModels(true);
     try {
-      const res = (await uiCall('llm.list_models', { provider })) as { models: string[] };
+      const res = (await uiCall('llm.list_models', { provider: resolved })) as { models: string[] };
       if (res && Array.isArray(res.models)) {
         setModelsList(res.models);
       }
@@ -852,8 +934,7 @@ export function PanelApp() {
                   <div className="row" style={{ gap: '4px' }}>
                     <VariablePicker
                       variables={state.variables}
-                      variant="badge"
-                      label={t('插入变量', 'Insert Variable')}
+                      variant="icon"
                       inputRef={{ current: messageRefs.current[index] || null }}
                       currentValue={msg.content}
                       onValueChange={(val) => updateMessage(index, 'content', val)}
@@ -956,6 +1037,7 @@ export function PanelApp() {
               </label>
               <VariablePicker
                 variables={state.variables}
+                variant="icon"
                 inputRef={embeddingsInputRef}
                 currentValue={embeddingsInputText}
                 onValueChange={(val) => {
@@ -1017,6 +1099,7 @@ export function PanelApp() {
               </label>
               <VariablePicker
                 variables={state.variables}
+                variant="icon"
                 inputRef={rerankQueryRef}
                 currentValue={String(config.query || '')}
                 onValueChange={(val) => updateConfig((prev) => ({ ...prev, query: val }))}
@@ -1040,6 +1123,7 @@ export function PanelApp() {
               </label>
               <VariablePicker
                 variables={state.variables}
+                variant="icon"
                 inputRef={rerankDocsRef}
                 currentValue={documentsText}
                 onValueChange={(val) => {

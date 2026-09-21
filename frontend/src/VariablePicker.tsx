@@ -57,42 +57,84 @@ export function insertVariableIntoInput(
   return next;
 }
 
-function calculateDropdownPosition(buttonEl: HTMLButtonElement | null): React.CSSProperties {
+/** Gap between the trigger button and the dropdown (px). */
+const DROPDOWN_GAP = 4;
+/** Keep the dropdown this far from the viewport edges (px). */
+const VIEWPORT_MARGIN = 8;
+/** Must match `.var-picker-body { max-height }` — the list scrolls past this. */
+const DROPDOWN_MAX_BODY_HEIGHT = 250;
+/** Never shrink below this, even in a very short iframe viewport (px). */
+const DROPDOWN_MIN_HEIGHT = 120;
+
+/**
+ * Natural (unconstrained) height of the dropdown: header + list (capped) + footer.
+ * Measured from the rendered element because the list length varies with search.
+ */
+function measureDropdownHeight(dropdownEl: HTMLElement | null): number {
+  if (!dropdownEl) return 0;
+  const header = dropdownEl.querySelector<HTMLElement>('.var-picker-header');
+  const body = dropdownEl.querySelector<HTMLElement>('.var-picker-body');
+  const footer = dropdownEl.querySelector<HTMLElement>('.var-picker-footer');
+  const bodyHeight = body ? Math.min(body.scrollHeight, DROPDOWN_MAX_BODY_HEIGHT) : 0;
+  return (header?.offsetHeight ?? 0) + bodyHeight + (footer?.offsetHeight ?? 0) + 2;
+}
+
+/**
+ * Position the dropdown inside the *iframe* viewport.
+ *
+ * The panel lives in a host-sized iframe whose height equals the panel content,
+ * so a tall list opened near the bottom would otherwise be clipped by the
+ * iframe edge. We therefore pick the side (below/above) with room for the whole
+ * list, and cap `maxHeight` to the space actually available so the list scrolls
+ * instead of overflowing.
+ */
+function calculateDropdownPosition(
+  buttonEl: HTMLButtonElement | null,
+  dropdownEl: HTMLElement | null,
+): React.CSSProperties {
   if (!buttonEl) return { position: 'fixed', top: '0px', left: '0px', zIndex: 9999 };
   const btnRect = buttonEl.getBoundingClientRect();
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 400;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 600;
 
-  const dropdownWidth = Math.min(290, viewportWidth - 20);
+  const dropdownWidth = Math.min(290, viewportWidth - VIEWPORT_MARGIN * 2);
 
   // Position horizontally: align with button's right edge by default
   let left = btnRect.right - dropdownWidth;
 
   // If overflowing left edge (x < 10px), align with button's left edge
-  if (left < 10) {
-    left = Math.max(10, btnRect.left);
+  if (left < VIEWPORT_MARGIN) {
+    left = Math.max(VIEWPORT_MARGIN, btnRect.left);
   }
 
-  // Ensure dropdown stays fully within the right edge (margin: 10px)
-  if (left + dropdownWidth > viewportWidth - 10) {
-    left = Math.max(10, viewportWidth - dropdownWidth - 10);
+  // Ensure dropdown stays fully within the right edge
+  if (left + dropdownWidth > viewportWidth - VIEWPORT_MARGIN) {
+    left = Math.max(VIEWPORT_MARGIN, viewportWidth - dropdownWidth - VIEWPORT_MARGIN);
   }
 
-  // Position vertically: render below button by default
-  let top = btnRect.bottom + 4;
-  const estimatedHeight = 240;
+  const naturalHeight = measureDropdownHeight(dropdownEl) || DROPDOWN_MIN_HEIGHT;
+  const spaceBelow = viewportHeight - btnRect.bottom - DROPDOWN_GAP - VIEWPORT_MARGIN;
+  const spaceAbove = btnRect.top - DROPDOWN_GAP - VIEWPORT_MARGIN;
 
-  // If overflowing bottom edge, flip above the button
-  if (top + estimatedHeight > viewportHeight && btnRect.top > estimatedHeight + 10) {
-    top = Math.max(10, btnRect.top - estimatedHeight - 4);
-  }
+  // Flip above only when the list does not fit below and above has more room.
+  const openAbove = naturalHeight > spaceBelow && spaceAbove > spaceBelow;
+  const available = Math.max(DROPDOWN_MIN_HEIGHT, openAbove ? spaceAbove : spaceBelow);
+  const maxHeight = Math.min(naturalHeight, available);
+
+  let top = openAbove
+    ? btnRect.top - DROPDOWN_GAP - maxHeight
+    : btnRect.bottom + DROPDOWN_GAP;
+
+  // Final clamp so rounding never pushes the dropdown past a viewport edge.
+  top = Math.max(VIEWPORT_MARGIN, Math.min(top, viewportHeight - VIEWPORT_MARGIN - maxHeight));
 
   return {
     position: 'fixed',
     top: `${Math.round(top)}px`,
     left: `${Math.round(left)}px`,
     width: `${dropdownWidth}px`,
-    maxWidth: `calc(100vw - 20px)`,
+    maxWidth: `calc(100vw - ${VIEWPORT_MARGIN * 2}px)`,
+    maxHeight: `${Math.round(maxHeight)}px`,
     zIndex: 9999,
   };
 }
@@ -119,14 +161,8 @@ export function VariablePicker({
 
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return;
-    setDropdownStyle(calculateDropdownPosition(buttonRef.current));
+    setDropdownStyle(calculateDropdownPosition(buttonRef.current, dropdownRef.current));
   }, []);
-
-  // Update position synchronously before paint on resize/scroll
-  useLayoutEffect(() => {
-    if (!isOpen) return;
-    updatePosition();
-  }, [isOpen, updatePosition]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -182,6 +218,13 @@ export function VariablePicker({
     });
   }, [variables, search]);
 
+  // Re-measure synchronously before paint: the list length changes with the
+  // search term, and the dropdown must stay inside the (possibly short) viewport.
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    updatePosition();
+  }, [isOpen, updatePosition, search, filteredVariables.length]);
+
   const handleSelect = (varExpr: string) => {
     if (inputRef && inputRef.current !== undefined) {
       insertVariableIntoInput(inputRef.current, currentValue, varExpr, onValueChange);
@@ -193,8 +236,9 @@ export function VariablePicker({
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isOpen) {
-      // Calculate coordinates synchronously so initial render frame is already positioned
-      setDropdownStyle(calculateDropdownPosition(buttonRef.current));
+      // Provisional coordinates (no dropdown to measure yet); the layout effect
+      // re-measures with the real list height before the browser paints.
+      setDropdownStyle(calculateDropdownPosition(buttonRef.current, null));
       setIsOpen(true);
     } else {
       setIsOpen(false);

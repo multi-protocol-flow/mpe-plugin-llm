@@ -262,6 +262,18 @@ body {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+/*
+ * WebKit 的 <input>/<select> 内联编辑器把文本垂直居中在内容盒里；当内容盒高度
+ * 恰好等于行盒高度（height: auto + line-height: normal）时，绘制在 descent 之下
+ * 的 `_` 会被内容盒裁掉 —— 变量名如 {{base_url_var}} 的下划线因此发虚、看起来被
+ * 切断（WebKitGTK 实测 14px 时整条消失）。给控件一个最小高度，让内容盒高于行盒，
+ * 下划线就有余量完整渲染。
+ */
+.input,
+.select {
+  min-height: 34px;
+}
+
 input[type="range"] {
   width: 100%;
   max-width: 100%;
@@ -778,6 +790,7 @@ option {
   padding: 8px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
+  flex-shrink: 0;
 }
 
 .var-picker-search-box {
@@ -817,6 +830,8 @@ option {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  /* 下拉被 maxHeight 压缩时，列表需可收缩并内部滚动（flex 项默认 min-height:auto 不会收缩） */
+  min-height: 0;
 }
 
 .var-picker-section {
@@ -976,4 +991,5 @@ option {
   background: var(--bg);
   font-size: 10px;
   color: var(--fg-muted);
+  flex-shrink: 0;
 }
