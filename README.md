@@ -87,3 +87,7 @@ cargo build --release
 # Offline unit + roundtrip + mock E2E tests
 cargo test
 ```
+
+## License
+
+MIT — see [LICENSE](./LICENSE).

@@ -81,3 +81,7 @@ cargo build --release
 # 运行离线单元测试与 Mock 端到端测试
 cargo test
 ```
+
+## 许可证
+
+MIT，详见 [LICENSE](./LICENSE)。
